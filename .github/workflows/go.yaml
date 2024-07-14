@@ -1,0 +1,27 @@
+name: Go
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  # Avoid noisy outputs like "tput: No value for $TERM and no -T specified"
+  TERM: dumb
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v5
+      with:
+        go-version: ^1.21
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v4

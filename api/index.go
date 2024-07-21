@@ -8,8 +8,9 @@ import (
 	"log"
 	"minireipaz/pkg/config"
 	"minireipaz/pkg/honeycomb"
-	"minireipaz/pkg/middlewares"
-	"minireipaz/pkg/routes"
+	"minireipaz/pkg/interfaces/middlewares"
+	"minireipaz/pkg/interfaces/routes"
+  "minireipaz/pkg/di"
 	"net/http"
 )
 
@@ -48,11 +49,14 @@ func Init() {
 	if err != nil {
 		log.Panicf("ERROR | Failed to initialize OpenTelemetry: %v", err)
 	}
+
 	gin.SetMode(gin.DebugMode)
 	app = gin.New()
-	middlewares.Register(app)
 
-	routes.Register(app)
+  worflowcontroller, authService := di.InitDependencies()
+	middlewares.Register(app, authService)
+	routes.Register(app, worflowcontroller)
+
 	RunWebserver()
 }
 

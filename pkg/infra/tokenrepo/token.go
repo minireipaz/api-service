@@ -36,7 +36,6 @@ func (r *TokenRepository) GetToken() (*Token, error) {
 
 	if r.token != nil {
     if time.Now().After(r.token.ObtainedAt.Add(r.token.ExpiresIn * time.Second)) {
-      // TODO: launch request to backend to renew token
 			return nil, fmt.Errorf("token expired")
 		}
 		return r.token, nil
@@ -56,7 +55,6 @@ func (r *TokenRepository) GetToken() (*Token, error) {
 		return nil, err
 	}
 
-  // TODO: launch request to backend to renew token
 	if time.Now().After(token.ObtainedAt.Add(token.ExpiresIn * time.Second)) {
 		return nil, fmt.Errorf("token expired")
 	}

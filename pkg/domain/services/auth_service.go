@@ -44,24 +44,28 @@ func (s *AuthService) GenerateNewToken() (string, error) {
 	}
 
 	err = s.tokenRepo.SaveToken(token)
-  if err != nil {
-    log.Panicf("ERROR | Failed to save token, %v", err)
-  }
+	if err != nil {
+		log.Panicf("ERROR | Failed to save token, %v", err)
+	}
 
 	return accessToken, nil
 }
 
 func (s *AuthService) GetAccessToken() (string, error) {
 	existingToken, err := s.tokenRepo.GetToken()
-	if err != nil && err.Error() != "token expired" {
+	if err != nil && (err.Error() == "token expired" || err.Error() == "no token found in redis") {
 		return s.GenerateNewToken()
 	}
 
-	if existingToken == nil || time.Now().After(existingToken.ObtainedAt.Add(existingToken.ExpiresIn * time.Second)) {
+	if existingToken == nil || time.Now().After(existingToken.ObtainedAt.Add(existingToken.ExpiresIn*time.Second)) {
 		// Rotate token if it's expired or not found
 		return s.GenerateNewToken()
 	}
-
+	// TODO: Verify with IAM Provider
+	isValid, err := s.verifyWithIAMProvider(existingToken)
+	if !isValid || err != nil {
+		return s.GenerateNewToken()
+	}
 	return existingToken.AccessToken, nil
 }
 
@@ -71,4 +75,9 @@ func (s *AuthService) VerifyToken(token string) (bool, error) {
 		return false, err
 	}
 	return masterToken == token, err
+}
+
+func (s *AuthService) verifyWithIAMProvider(token *tokenrepo.Token) (bool, error) {
+  // TODO: verify with iam provider
+	return true, nil
 }

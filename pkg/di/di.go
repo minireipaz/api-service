@@ -7,8 +7,8 @@ import (
 	"minireipaz/pkg/interfaces/controllers"
 )
 
-func InitDependencies() ( *controllers.WorkflowController,  *services.AuthService) {
-  // init autentication
+func InitDependencies() (*controllers.WorkflowController, *services.AuthService) {
+	// init autentication
 	config := config.NewZitaldelEnvConfig()
 	authContext := controllers.NewAuthContext(config)
 	authContext.GetAuthController()
@@ -20,6 +20,6 @@ func InitDependencies() ( *controllers.WorkflowController,  *services.AuthServic
 	workflowService := services.NewWorkflowService(repo, idService)
 	workflowController := controllers.NewWorkflowController(workflowService, authService)
 
-  return workflowController, authService
+	return workflowController, authService
 
 }

@@ -1,0 +1,14 @@
+DATASOURCE subscriptions
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(start_date)"
+ENGINE_SORTING_KEY "id, user_id, start_date"
+
+SCHEMA >
+    `id` String,
+    `user_id` String,
+    `plan_id` String,
+    `status` Enum8('active' = 1, 'canceled' = 2, 'expired' = 3) DEFAULT 'active',
+    `start_date` Date,
+    `end_date` Date,
+    `created_at` DateTime,
+    `updated_at` DateTime

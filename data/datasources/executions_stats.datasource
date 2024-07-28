@@ -1,0 +1,16 @@
+DATASOURCE executions_stats
+ENGINE "SummingMergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(date)"
+ENGINE_SORTING_KEY "date, workflow_id"
+
+SCHEMA >
+    `date` Date,
+    `workflow_id` String,
+    `total_executions` UInt32,
+    `successful_executions` UInt32,
+    `failed_executions` UInt32,
+    `pending_executions` UInt32,
+    `processing_executions` UInt32,
+    `avg_duration_seconds` Float64,
+    `min_duration_seconds` Int32,
+    `max_duration_seconds` Int32

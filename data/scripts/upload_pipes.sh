@@ -1,0 +1,2 @@
+#!
+tb push ./pipes/*.pipe

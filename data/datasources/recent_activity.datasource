@@ -1,0 +1,13 @@
+DATASOURCE recent_activity
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMMDD(timestamp)"
+ENGINE_SORTING_KEY "timestamp, user_id, activity_type"
+
+SCHEMA >
+    `id` String,
+    `user_id` String,
+    `user_name` String,
+    `activity_type` Enum8('created_workflow' = 1, 'uploaded_file' = 2, 'downloaded_report' = 3, 'executed_workflow' = 4) DEFAULT 'created_workflow',
+    `activity_description` String,
+    `related_workflow_id` Nullable(String),
+    `timestamp` DateTime

@@ -1,0 +1,17 @@
+DATASOURCE workflows
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(created_at)"
+ENGINE_SORTING_KEY "id, user_id"
+
+SCHEMA >
+    `id` String,
+    `user_id` String,
+    `name` String,
+    `description` String,
+    `is_active` UInt8, --Enum8('active' = 1, 'draft' = 2, 'paused' = 3) DEFAULT 'active'
+    `created_at` DateTime,
+    `updated_at` DateTime,
+    `workflow_init` DateTime,
+    `workflow_completed` DateTime,
+    `status` UInt8 DEFAULT 1 --Enum8('completed' = 1, 'pending' = 2, 'processing' = 3, 'failed' = 4) DEFAULT 'processing',
+    -- `duration` UInt32 MATERIALIZED if(workflow_completed > workflow_init, dateDiff('second', workflow_init, workflow_completed), NULL)

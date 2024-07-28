@@ -1,0 +1,18 @@
+DATASOURCE users
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(createdAt)"
+ENGINE_SORTING_KEY "id"
+
+SCHEMA >
+    `id` String,
+    `stub` String,
+    `status` UInt8 DEFAULT 1, -- Enum8('active' = 1, 'invited' = 2, 'pending' = 3, 'blocked' = 4),
+    `resetPasswordToken` Nullable(String),
+    `resetPasswordTokenSentAt` Nullable(DateTime),
+    invitationToken Nullable(String),
+    invitationTokenSentAt Nullable(DateTime),
+    `trialExpiryDate` Date,
+    `roleId` LowCardinality(String),
+    `deletedAt` Nullable(DateTime),
+    `createdAt` DateTime,
+    `updatedAt` DateTime

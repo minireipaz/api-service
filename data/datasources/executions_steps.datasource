@@ -1,0 +1,15 @@
+DATASOURCE execution_steps
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMMDD(start_time)"
+ENGINE_SORTING_KEY "id, execution_id, start_time"
+
+SCHEMA >
+    `id` String,
+    `execution_id` String,
+    `workflow_step_id` String,
+    `status` Enum8('pending' = 1, 'processing' = 2, 'completed' = 3, 'failed' = 4) DEFAULT 'processing',
+    `input_data` String,
+    `output_data` String,
+    `error_details` Nullable(String),
+    `start_time` DateTime,
+    `end_time` Nullable(DateTime)

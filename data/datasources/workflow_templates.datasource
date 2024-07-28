@@ -1,0 +1,13 @@
+DATASOURCE workflow_templates
+ENGINE "MergeTree"
+ENGINE_SORTING_KEY "id, category"
+
+SCHEMA >
+    `id` String,
+    `name` String,
+    `description` String,
+    `category` String,
+    `template_data` String,
+    `created_by` String,
+    `created_at` DateTime,
+    `updated_at` DateTime

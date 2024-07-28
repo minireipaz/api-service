@@ -1,0 +1,5 @@
+#!
+user_id="73052781-3d5d-4e71-bfc3-277693180f0c"
+tb pipe data user_workflow_stats --user_id $user_id --format CSV
+# tb pipe data user_workflow_stats --user_id 73052781-3d5d-4e71-bfc3-277693180f0c --format csv
+

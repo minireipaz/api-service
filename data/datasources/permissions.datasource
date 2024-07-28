@@ -1,0 +1,10 @@
+DATASOURCE permissions
+ENGINE "MergeTree"
+ENGINE_SORTING_KEY "id, role_id"
+
+SCHEMA >
+    `id` String,
+    `role_id` String,
+    `subject` String,
+    `action` String,
+    `conditions` Nullable(String)

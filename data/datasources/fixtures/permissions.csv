@@ -1,0 +1,22 @@
+id,role_id,subject,action,conditions
+1,1,all,all,NULL
+2,2,post,read,NULL
+3,2,post,create,NULL
+4,2,comment,create,NULL
+5,3,post,read,NULL
+6,3,post,create,NULL
+7,3,post,update,NULL
+8,3,post,delete,NULL
+9,3,comment,moderate,NULL
+10,4,post,read,NULL
+11,4,post,create,NULL
+12,4,post,update,NULL
+13,5,post,read,NULL
+14,6,order,create,NULL
+15,6,order,read,"{""owner"": ""self""}"
+16,7,ticket,read,NULL
+17,7,ticket,update,NULL
+18,8,report,read,NULL
+19,9,analytics,read,NULL
+20,10,code,read,NULL
+21,10,code,write,NULL

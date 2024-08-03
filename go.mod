@@ -10,6 +10,11 @@ require (
 	github.com/stretchr/testify v1.9.0
 )
 
+require (
+	github.com/confluentinc/confluent-kafka-go/v2 v2.5.0
+	github.com/stretchr/objx v0.5.2 // indirect
+)
+
 require github.com/gin-contrib/cors v1.7.2 // direct
 
 require (

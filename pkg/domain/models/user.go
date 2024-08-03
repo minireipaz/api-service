@@ -8,20 +8,21 @@ import (
 type Users struct {
 	ID                       string     `json:"id,omitempty"`
 	AccessToken              string     `json:"access_token,omitempty"`
-	Stub                     string     `json:"stub"`
+	Sub                      string     `json:"sub"`
 	Status                   UserStatus `json:"status,omitempty"`
+	RoleID                   UserRoleID `json:"roleId,omitempty"`
 	ResetPasswordToken       *string    `json:"resetPasswordToken,omitempty"`
 	ResetPasswordTokenSentAt *time.Time `json:"resetPasswordTokenSentAt,omitempty"`
 	InvitationToken          *string    `json:"invitationToken,omitempty"`
 	InvitationTokenSentAt    *time.Time `json:"invitationTokenSentAt,omitempty"`
-	TrialExpiryDate          time.Time  `json:"trialExpiryDate,omitempty"`
-	RoleID                   string     `json:"roleId,omitempty"`
+	TrialExpiryDate          *time.Time `json:"trialExpiryDate,omitempty"`
 	DeletedAt                *time.Time `json:"deleted_at,omitempty"`
-	CreatedAt                time.Time  `json:"created_at,omitempty"`
-	UpdatedAt                time.Time  `json:"updated_at,omitempty"`
+	CreatedAt                *time.Time `json:"created_at,omitempty"`
+	UpdatedAt                *time.Time `json:"updated_at,omitempty"`
 }
 
 type UserStatus uint8
+type UserRoleID uint8
 
 const (
 	StatusActive  UserStatus = 1
@@ -29,11 +30,27 @@ const (
 	StatusPending UserStatus = 3
 	StatusBlocked UserStatus = 4
 
-	UserStubExist        = "Stub already exists"
+	RoleAdmin     UserRoleID = 1
+	RoleUser      UserRoleID = 2
+	RoleModerator UserRoleID = 3
+	RoleEditor    UserRoleID = 4
+	RoleGuest     UserRoleID = 5
+	RoleCustomer  UserRoleID = 6
+	RoleSupport   UserRoleID = 7
+	RoleManager   UserRoleID = 8
+	RoleAnalyst   UserRoleID = 9
+	RoleDeveloper UserRoleID = 10
+
+	UserInvalidJSON = "Invalid JSON data"
+
+	UserSubExist         = "Sub already exists"
 	UserNameExist        = "username already exists"
-	UserCannotGenerate   = "error checking Stub existence"
+	UserCannotGenerate   = "error checking Sub existence"
 	UserNameCannotCreate = "error checking username existence"
 	UsertNameNotGenerate = "cannot create new user"
+
+	UserSubRequired = "Sub user is required"
+	UserSubMustBe   = "Sub user must greater than 3 characters"
 )
 
 func (s UserStatus) String() string {

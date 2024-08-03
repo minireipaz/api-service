@@ -21,7 +21,7 @@ func (u *UserKafkaRepository) Create(user *models.Users) (created bool, exist bo
 		return false, false
 	}
 
-	err = u.client.Produce("users.db.write", []byte(user.Stub), userJSON)
+	err = u.client.Produce("users.db.write", []byte(user.Sub), userJSON)
 	if err != nil {
 		return false, false
 	}

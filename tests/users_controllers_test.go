@@ -5,12 +5,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"minireipaz/pkg/domain/models"
 	"minireipaz/pkg/domain/services"
 	"minireipaz/pkg/interfaces/controllers"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var _ services.UserServiceInterface = (*MockUserService)(nil)
@@ -37,7 +38,7 @@ func TestSyncUseWrithIDProvider(t *testing.T) {
 				m.On("SynUser", mock.Anything).Return(false, true)
 			},
 			want: http.StatusCreated,
-			user: models.Users{Stub: "testUser"},
+			user: models.Users{Sub: "testUser"},
 		},
 		{
 			name: "User created",
@@ -45,7 +46,7 @@ func TestSyncUseWrithIDProvider(t *testing.T) {
 				m.On("SynUser", mock.Anything).Return(true, false)
 			},
 			want: http.StatusCreated,
-			user: models.Users{Stub: "testUser"},
+			user: models.Users{Sub: "testUser"},
 		},
 		{
 			name: "User creation failed",
@@ -53,7 +54,7 @@ func TestSyncUseWrithIDProvider(t *testing.T) {
 				m.On("SynUser", mock.Anything).Return(false, false)
 			},
 			want: http.StatusInternalServerError,
-			user: models.Users{Stub: "testUser"},
+			user: models.Users{Sub: "testUser"},
 		},
 	}
 

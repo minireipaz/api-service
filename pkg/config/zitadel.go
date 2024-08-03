@@ -2,7 +2,7 @@ package config
 
 type EnvZitadelConfig struct{}
 
-type Config interface {
+type ZitadelConfig interface {
 	GetZitadelURI() string
 	GetZitadelKeyUserID() string
 	GetZitadelKeyPrivate() string
@@ -30,6 +30,6 @@ func (e *EnvZitadelConfig) GetEnv(key, fallback string) string {
 	return GetEnv(key, fallback)
 }
 
-func NewZitaldelEnvConfig() Config {
+func NewZitaldelEnvConfig() ZitadelConfig {
 	return &EnvZitadelConfig{}
 }

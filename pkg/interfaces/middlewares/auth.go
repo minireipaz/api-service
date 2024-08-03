@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func VerifyToken(authService *services.AuthService, token string) (bool, error) {
+func VerifyServiceUserToken(authService *services.AuthService, token string) (bool, error) {
 	isValid, err := authService.VerifyToken(token)
 	if err != nil {
 		return false, err
@@ -33,12 +33,14 @@ func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 
 		token := parts[1]
 
-		valid, err := VerifyToken(authService, token)
+		valid, err := VerifyServiceUserToken(authService, token)
 		if err != nil || !valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			c.Abort()
 			return
 		}
+
+    // TODO: Client Access Token
 
 		c.Next()
 	}

@@ -50,7 +50,7 @@ func (k *KafkaClientImpl) Produce(topic string, key []byte, value []byte) error 
 	}
 
 	close(deliveryChan)
-	return nil
+	return err
 }
 
 func (k *KafkaClientImpl) Close() {

@@ -62,7 +62,7 @@ func (s *AuthService) GetAccessToken() (string, error) {
 		return s.GenerateNewToken()
 	}
 	// TODO: Verify with IAM Provider
-	isValid, err := s.verifyWithIAMProvider(existingToken)
+	isValid, err := s.verifyWithIDProvider(existingToken)
 	if !isValid || err != nil {
 		return s.GenerateNewToken()
 	}
@@ -77,7 +77,10 @@ func (s *AuthService) VerifyToken(token string) (bool, error) {
 	return masterToken == token, err
 }
 
-func (s *AuthService) verifyWithIAMProvider(token *tokenrepo.Token) (bool, error) {
-  // TODO: verify with iam provider
+func (s *AuthService) verifyWithIDProvider(token *tokenrepo.Token) (bool, error) {
+  // TODO: verify with IDProvider
+  if token.AccessToken == "" { /// dummy check
+    return false, nil
+  }
 	return true, nil
 }

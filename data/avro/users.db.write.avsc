@@ -1,0 +1,71 @@
+{
+  "type": "record",
+  "name": "Users",
+  "namespace": "com.minireipaz",
+  "fields": [
+    {
+      "name": "ID",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "AccessToken",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "Sub",
+      "type": "string"
+    },
+    {
+      "name": "Status",
+      "type": {
+        "type": "enum",
+        "name": "UserStatus",
+        "symbols": ["active", "invited", "pending", "blocked"]
+      }
+    },
+    {
+      "name": "ResetPasswordToken",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "ResetPasswordTokenSentAt",
+      "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}],
+      "default": null
+    },
+    {
+      "name": "InvitationToken",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "InvitationTokenSentAt",
+      "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}],
+      "default": null
+    },
+    {
+      "name": "TrialExpiryDate",
+      "type": {"type": "long", "logicalType": "timestamp-millis"}
+    },
+    {
+      "name": "RoleID",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "DeletedAt",
+      "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}],
+      "default": null
+    },
+    {
+      "name": "CreatedAt",
+      "type": {"type": "long", "logicalType": "timestamp-millis"}
+    },
+    {
+      "name": "UpdatedAt",
+      "type": {"type": "long", "logicalType": "timestamp-millis"}
+    }
+  ]
+}

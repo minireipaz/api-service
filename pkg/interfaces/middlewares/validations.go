@@ -40,24 +40,23 @@ func ValidateWorkflow() gin.HandlerFunc {
 	}
 }
 
-
 func ValidateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var currentUser models.Users
 		if err := c.ShouldBindJSON(&currentUser); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON data"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": models.UserInvalidJSON})
 			c.Abort()
 			return
 		}
 
-		if strings.TrimSpace(currentUser.Stub) == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Stub user is required"})
+		if strings.TrimSpace(currentUser.Sub) == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": models.UserSubRequired})
 			c.Abort()
 			return
 		}
 
-		if len(currentUser.Stub) < 3 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Stub user must greater than 3 characters"})
+		if len(currentUser.Sub) < 3 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": models.UserSubMustBe })
 			c.Abort()
 			return
 		}

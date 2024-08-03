@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"time"
 )
 
 type HttpClient interface {
@@ -13,7 +14,10 @@ type HttpClient interface {
 type HttpClientImpl struct{}
 
 func (c *HttpClientImpl) Do(req *http.Request) (*http.Response, error) {
-	client := &http.Client{}
+	client := &http.Client{
+    Timeout: 15 * time.Second,
+  }
+
 	return client.Do(req)
 }
 

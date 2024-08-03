@@ -54,6 +54,10 @@ func (r *RedisClient) Hexists(key string, field string) bool {
 	return r.Client.HExists(r.Ctx, key, field).Val()
 }
 
+func (r *RedisClient) Exists(key string) (int64, error) {
+	return r.Client.Exists(r.Ctx, key).Result()
+}
+
 func (r *RedisClient) Get(key string) (string, error) {
 	return r.Client.Get(r.Ctx, key).Result()
 }

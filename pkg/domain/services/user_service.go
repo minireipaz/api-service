@@ -30,7 +30,11 @@ func NewUserService(newRepoHTTP *httpclient.UserRepository, newRepoRedis *redisc
 }
 
 func (u *UserService) SynUser(user *models.Users) (created, exist bool) {
-	exist = u.repoRedis.CheckExist(user)
+	exist, err := u.repoRedis.CheckExist(user)
+  if err != nil {
+    log.Printf("ERROR | Cannot access to repo redis %v", err)
+    return false, false
+  }
 	if exist {
 		return false, true
 	}
@@ -43,7 +47,10 @@ func (u *UserService) SynUser(user *models.Users) (created, exist bool) {
 		}
 		time.Sleep(1 * time.Second)
 	}
-	created, exist = u.repoBroker.Create(user)
+
+  setDefaults(user)
+
+  created, exist = u.repoBroker.Create(user)
 	if exist {
 		log.Printf("WARN | Already exist in Result DB")
 	}
@@ -51,4 +58,18 @@ func (u *UserService) SynUser(user *models.Users) (created, exist bool) {
 	u.repoRedis.RemoveLock(user)
 
 	return created, exist
+}
+
+func setDefaults(user *models.Users) {
+	if user.Status == 0 {
+		user.Status = models.StatusActive
+	}
+
+	if user.RoleID == 0 {
+		user.RoleID = generateDefaultUserRoleID()
+	}
+}
+
+func generateDefaultUserRoleID() models.UserRoleID {
+	return models.RoleUser
 }

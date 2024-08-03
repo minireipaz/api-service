@@ -61,7 +61,7 @@ func (s *AuthService) GetAccessToken() (string, error) {
 		// Rotate token if it's expired or not found
 		return s.GenerateNewToken()
 	}
-	// TODO: Verify with IAM Provider
+  // TODO: Verify Service USER access token with ID Provider
 	isValid, err := s.verifyWithIDProvider(existingToken)
 	if !isValid || err != nil {
 		return s.GenerateNewToken()
@@ -84,3 +84,12 @@ func (s *AuthService) verifyWithIDProvider(token *tokenrepo.Token) (bool, error)
   }
 	return true, nil
 }
+
+func (s *AuthService) verifyUserAccessTokenWithIDProvider(token *tokenrepo.Token) (bool, error) {
+  // TODO: verify with IDProvider
+  if token.AccessToken == "" { /// dummy check
+    return false, nil
+  }
+	return true, nil
+}
+

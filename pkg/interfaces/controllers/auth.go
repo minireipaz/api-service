@@ -18,10 +18,10 @@ type AuthController struct {
 type AuthContext struct {
 	authController *AuthController
 	once           sync.Once
-	config         config.Config
+	config         config.ZitadelConfig
 }
 
-func NewAuthContext(cfg config.Config) *AuthContext {
+func NewAuthContext(cfg config.ZitadelConfig) *AuthContext {
 	return &AuthContext{
 		config: cfg,
 	}

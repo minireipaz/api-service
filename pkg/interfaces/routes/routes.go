@@ -9,10 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(app *gin.Engine, workflowController *controllers.WorkflowController) {
+func Register(app *gin.Engine, workflowController *controllers.WorkflowController, userController *controllers.UserController) {
 	app.NoRoute(ErrRouter)
 
-	// Configuración de rutas
+	// Routes in groups
 	api := app.Group("/api")
 	{
 		api.GET("/ping", common.Ping)
@@ -21,6 +21,12 @@ func Register(app *gin.Engine, workflowController *controllers.WorkflowControlle
 		{
 			workflows.POST("", middlewares.ValidateWorkflow(), workflowController.CreateWorkflow)
 			// workflows.GET("/:uuid", workflowController.GetWorkflow)
+		}
+
+		users := api.Group("/users")
+		{
+			users.POST("", middlewares.ValidateUser(), userController.SyncUseWrithIDProvider)
+			users.GET("/:stub", userController.GetUserByStub)
 		}
 
 	}

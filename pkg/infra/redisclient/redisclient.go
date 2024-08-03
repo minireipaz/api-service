@@ -103,3 +103,12 @@ func (r *RedisClient) WatchToken(data string, key string, expiresInSeconds time.
 
 	return err
 }
+
+func (r *RedisClient) acquireLock(key, value string, expiration time.Duration) (bool, error) {
+	return r.Client.SetNX(r.Ctx, key, value, expiration).Result()
+}
+
+func (r *RedisClient) removeLock(key string) (int64, error) {
+	result, err := r.Client.Del(r.Ctx, key).Result()
+  return result, err
+}

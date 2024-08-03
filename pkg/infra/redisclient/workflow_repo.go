@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"minireipaz/pkg/domain/models"
-	"minireipaz/pkg/domain/repos"
 
 	"github.com/google/uuid"
 )
@@ -13,7 +12,7 @@ type WorkflowRepository struct {
 	redisClient *RedisClient
 }
 
-func NewWorkflowRepository(redisClient *RedisClient) repos.WorkflowRepository {
+func NewWorkflowRepository(redisClient *RedisClient) *WorkflowRepository {
 	return &WorkflowRepository{redisClient: redisClient}
 }
 

@@ -15,10 +15,10 @@ const (
 )
 
 type Workflow struct {
-	Sub             string    `json:"sub"`
-	UUID            uuid.UUID `json:"uuid"`
+	Sub             string    `json:"sub,omitempty"`
+	UUID            uuid.UUID `json:"uuid,omitempty"`
 	WorkflowName    string    `json:"workflowname"`
-	DirectoryToSave string    `json:"directorytosave"`
-	CreatedAt       string    `json:"createdat"`
-	UpdatedAt       string    `json:"updatedat"`
+	DirectoryToSave string    `json:"directorytosave,omitempty"`
+	CreatedAt       string    `json:"createdat,omitempty"`
+	UpdatedAt       string    `json:"updatedat,omitempty"`
 }

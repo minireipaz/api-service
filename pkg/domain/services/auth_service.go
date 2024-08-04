@@ -85,11 +85,11 @@ func (s *AuthService) verifyWithIDProvider(token *tokenrepo.Token) (bool, error)
 	return true, nil
 }
 
-func (s *AuthService) verifyUserAccessTokenWithIDProvider(token *tokenrepo.Token) (bool, error) {
-  // TODO: verify with IDProvider
-  if token.AccessToken == "" { /// dummy check
-    return false, nil
-  }
-	return true, nil
-}
+// func (s *AuthService) verifyUserAccessTokenWithIDProvider(token *tokenrepo.Token) (bool, error) {
+//   // TODO: verify with IDProvider
+//   if token.AccessToken == "" { /// dummy check
+//     return false, nil
+//   }
+// 	return true, nil
+// }
 

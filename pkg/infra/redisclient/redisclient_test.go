@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"minireipaz/pkg/domain/models"
+	"minireipaz/pkg/infra/redisclient"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/go-redis/redismock/v8"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"minireipaz/pkg/domain/models"
-	"minireipaz/pkg/infra/redisclient"
 )
 
 func TestRedisClient_checkAndSetWorkflow(t *testing.T) {

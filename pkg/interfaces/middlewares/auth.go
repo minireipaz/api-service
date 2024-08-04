@@ -1,10 +1,11 @@
 package middlewares
 
 import (
-	"github.com/gin-gonic/gin"
 	"minireipaz/pkg/domain/services"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func VerifyServiceUserToken(authService *services.AuthService, token string) (bool, error) {
@@ -40,7 +41,7 @@ func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 			return
 		}
 
-    // TODO: Client Access Token
+		// TODO: Client Access Token
 
 		c.Next()
 	}

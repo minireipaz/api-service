@@ -7,8 +7,8 @@ type KafkaConfig interface {
 	GetProtocol() string
 	GetMechanisms() string
 	GetUsername() string
-  GetPassword() string
-  GetTimeout() string
+	GetPassword() string
+	GetTimeout() string
 	GetEnv(key, fallback string) string
 }
 

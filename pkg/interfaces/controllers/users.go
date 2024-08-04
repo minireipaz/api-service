@@ -35,9 +35,8 @@ func (u *UserController) SyncUseWrithIDProvider(ctx *gin.Context) {
 		"error":  "",
 		"status": http.StatusCreated,
 	})
-
 }
 
-func (u *UserController) GetUserByStub(ctx *gin.Context) {
+func (u *UserController) GetUserByStub(_ *gin.Context) {
 
 }

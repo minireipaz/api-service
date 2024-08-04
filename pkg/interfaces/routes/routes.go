@@ -28,7 +28,6 @@ func Register(app *gin.Engine, workflowController *controllers.WorkflowControlle
 			users.POST("", middlewares.ValidateUser(), userController.SyncUseWrithIDProvider)
 			users.GET("/:stub", userController.GetUserByStub)
 		}
-
 	}
 }
 

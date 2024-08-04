@@ -7,16 +7,16 @@ import (
 	"time"
 )
 
-type HttpClient interface {
+type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-type HttpClientImpl struct{}
+type Impl struct{}
 
-func (c *HttpClientImpl) Do(req *http.Request) (*http.Response, error) {
+func (c *Impl) Do(req *http.Request) (*http.Response, error) {
 	client := &http.Client{
-    Timeout: 15 * time.Second,
-  }
+		Timeout: 15 * time.Second,
+	}
 
 	return client.Do(req)
 }

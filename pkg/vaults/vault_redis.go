@@ -21,7 +21,7 @@ func GetAllEnvsFromRedis() string {
 
 	if uriVault == "" || vaulKeyFrontendEnvs == "" {
 		log.Print("ERROR | Cannot load initial VAULT_URI")
-    return "";
+		return ""
 	}
 	opt, err := redis.ParseURL(uriVault)
 	if err != nil {

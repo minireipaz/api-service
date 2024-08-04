@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"log"
 	"minireipaz/pkg/auth"
 	"minireipaz/pkg/infra/httpclient"
@@ -9,7 +10,7 @@ import (
 )
 
 const (
-	twoDaysSeconds = 172_800 * time.Second
+	twoDays = 172_800 * time.Second
 )
 
 type AuthService struct {
@@ -27,7 +28,7 @@ func NewAuthService(jwtGenerator *auth.JWTGenerator, zitadelClient *httpclient.Z
 }
 
 func (s *AuthService) GenerateNewToken() (string, error) {
-	jwt, err := s.jwtGenerator.GenerateJWT(twoDaysSeconds)
+	jwt, err := s.jwtGenerator.GenerateJWT(twoDays)
 	if err != nil {
 		log.Panicf("ERROR | Cannot generate JWT %v", err)
 	}
@@ -61,7 +62,7 @@ func (s *AuthService) GetAccessToken() (string, error) {
 		// Rotate token if it's expired or not found
 		return s.GenerateNewToken()
 	}
-  // TODO: Verify Service USER access token with ID Provider
+	// TODO: Verify Service USER access token with ID Provider
 	isValid, err := s.verifyWithIDProvider(existingToken)
 	if !isValid || err != nil {
 		return s.GenerateNewToken()
@@ -78,10 +79,10 @@ func (s *AuthService) VerifyToken(token string) (bool, error) {
 }
 
 func (s *AuthService) verifyWithIDProvider(token *tokenrepo.Token) (bool, error) {
-  // TODO: verify with IDProvider
-  if token.AccessToken == "" { /// dummy check
-    return false, nil
-  }
+	// TODO: verify with IDProvider
+	if token.AccessToken == "" { /// dummy check
+		return false, fmt.Errorf("ERROR | AccessToken cannot be empty")
+	}
 	return true, nil
 }
 
@@ -92,4 +93,3 @@ func (s *AuthService) verifyWithIDProvider(token *tokenrepo.Token) (bool, error)
 //   }
 // 	return true, nil
 // }
-

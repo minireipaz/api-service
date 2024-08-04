@@ -9,9 +9,9 @@ import (
 
 func GetEnvsFromVault() {
 	envValues := GetAllEnvsFromRedis()
-  if envValues == "" {
-    return
-  }
+	if envValues == "" {
+		return
+	}
 	envsMaped := serializeEnvs(envValues)
 	setEnvs(envsMaped)
 }

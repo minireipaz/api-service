@@ -96,10 +96,10 @@ func (r *RedisClient) CheckAndSetWorkflow(ctx context.Context, tx *redis.Tx, wor
 	return err
 }
 
-func (r *RedisClient) WatchToken(data string, key string, expiresInSeconds time.Duration) error {
+func (r *RedisClient) WatchToken(data string, key string, expires time.Duration) error {
 	err := r.Client.Watch(r.Ctx, func(tx *redis.Tx) error {
 		_, err := tx.TxPipelined(r.Ctx, func(pipe redis.Pipeliner) error {
-			pipe.SetNX(r.Ctx, key, data, expiresInSeconds)
+			pipe.SetNX(r.Ctx, key, data, expires)
 			return nil
 		})
 		return err
@@ -114,5 +114,5 @@ func (r *RedisClient) acquireLock(key, value string, expiration time.Duration) (
 
 func (r *RedisClient) removeLock(key string) (int64, error) {
 	result, err := r.Client.Del(r.Ctx, key).Result()
-  return result, err
+	return result, err
 }

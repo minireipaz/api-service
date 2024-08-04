@@ -4,14 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"minireipaz/pkg/common"
+	"minireipaz/pkg/domain/models"
 	"minireipaz/pkg/infra/redisclient"
 	"sync"
 	"time"
-)
-
-const (
-	offset    = 1 * time.Second
-	timedrift = 500 * time.Millisecond
 )
 
 type Token struct {
@@ -83,9 +80,9 @@ func (r *TokenRepository) SaveToken(token *Token) error {
 			r.token = token
 			return nil
 		}
-		waitTime := offset + time.Duration(i)*timedrift // Incremental wait time
+		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
 		log.Printf("WARNING | Failed to save token, attempt %d: %v. Retrying in %v", i, err, waitTime)
-    time.Sleep(waitTime)
+		time.Sleep(waitTime)
 	}
 	log.Printf("ERROR | Failed to save token, %v", err)
 	return err

@@ -56,7 +56,7 @@ func ValidateUser() gin.HandlerFunc {
 		}
 
 		if len(currentUser.Sub) < 3 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": models.UserSubMustBe })
+			c.JSON(http.StatusBadRequest, gin.H{"error": models.UserSubMustBe})
 			c.Abort()
 			return
 		}

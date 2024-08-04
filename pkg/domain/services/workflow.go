@@ -34,10 +34,11 @@ func (s *WorkflowService) CreateWorkflow(workflow *models.Workflow) (created boo
     if (exist) {
       return false, true
     }
-		timeWait := time.Duration(rand.Int63n(int64(models.MaxSleepDuration-models.MinSleepDuration))) + models.MinSleepDuration + models.SleepOffset
-		time.Sleep(timeWait)
+		waitTime := time.Duration(rand.Int63n(int64(models.MaxSleepDuration-models.MinSleepDuration))) + models.MinSleepDuration + models.SleepOffset
+		log.Printf("WARNING | Failed to create workflow, attempt %d:. Retrying in %v", i, waitTime)
+		time.Sleep(waitTime)
 	}
-	log.Print("ERROR | Cannot create workflow")
+	log.Print("ERROR | Needs to add to Dead Letter. Cannot create workflow")
 	// TODO: dead letter
 	return false, false
 }

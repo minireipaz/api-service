@@ -37,7 +37,7 @@ func TestSyncUseWrithIDProvider(t *testing.T) {
 			mockSetup: func(m *MockUserService) {
 				m.On("SynUser", mock.Anything).Return(false, true)
 			},
-			want: http.StatusCreated,
+			want: http.StatusOK,
 			user: models.Users{Sub: "testUser"},
 		},
 		{
@@ -45,7 +45,7 @@ func TestSyncUseWrithIDProvider(t *testing.T) {
 			mockSetup: func(m *MockUserService) {
 				m.On("SynUser", mock.Anything).Return(true, false)
 			},
-			want: http.StatusCreated,
+			want: http.StatusOK,
 			user: models.Users{Sub: "testUser"},
 		},
 		{

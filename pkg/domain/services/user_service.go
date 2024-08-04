@@ -6,7 +6,6 @@ import (
 	"minireipaz/pkg/infra/brokerclient"
 	"minireipaz/pkg/infra/httpclient"
 	"minireipaz/pkg/infra/redisclient"
-	"time"
 )
 
 type UserServiceInterface interface {
@@ -30,34 +29,43 @@ func NewUserService(newRepoHTTP *httpclient.UserRepository, newRepoRedis *redisc
 }
 
 func (u *UserService) SynUser(user *models.Users) (created, exist bool) {
-	exist, err := u.repoRedis.CheckExist(user)
-  if err != nil {
-    log.Printf("ERROR | Cannot access to repo redis %v", err)
-    return false, false
-  }
+	exist, err := u.repoRedis.CheckUserExist(user)
+	if err != nil {
+		log.Printf("ERROR | Cannot access to repo redis %v", err)
+		return false, false
+	}
 	if exist {
 		return false, true
 	}
+
+	// new user
+	exist, err = u.repoRedis.CheckLockExist(user)
+	if err != nil {
+		log.Printf("ERROR | Cannot access to repo redis %v", err)
+		return false, false
+	}
+	if exist {
+		return false, false
+	}
 	// not exist generate lock for about 20 seconds
 	// and 10 retries
-	for i := 0; i < 10; i++ {
-		locked, _ := u.repoRedis.AddLock(user)
-		if locked {
-			break
-		}
-		time.Sleep(1 * time.Second)
+	locked, err := u.repoRedis.AddLock(user)
+	if err != nil {
+		// TODO: Dead letter
+		log.Printf("ERROR | Needs to Added to dead letter %s", user.Sub)
 	}
 
-  setDefaults(user)
-
-  created, exist = u.repoBroker.Create(user)
-	if exist {
-		log.Printf("WARN | Already exist in Result DB")
+	if !locked {
+		log.Printf("WARN | Cannot created lock for user %s", user.Sub)
 	}
+
+	setDefaults(user) // default roleID
+	sended := u.repoBroker.CreateUser(user)
+
 	// in case cannot get autoremoved
 	u.repoRedis.RemoveLock(user)
 
-	return created, exist
+	return sended, false
 }
 
 func setDefaults(user *models.Users) {

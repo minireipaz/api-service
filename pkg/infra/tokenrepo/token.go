@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+const (
+	offset    = 1 * time.Second
+	timedrift = 500 * time.Millisecond
+)
+
 type Token struct {
 	ObtainedAt  time.Time     `json:"obtained_at"`
 	AccessToken string        `json:"access_token"`
@@ -35,7 +40,7 @@ func (r *TokenRepository) GetToken() (*Token, error) {
 	defer r.mu.RUnlock()
 
 	if r.token != nil {
-    if time.Now().After(r.token.ObtainedAt.Add(r.token.ExpiresIn * time.Second)) {
+		if time.Now().After(r.token.ObtainedAt.Add(r.token.ExpiresIn * time.Second)) {
 			return nil, fmt.Errorf("token expired")
 		}
 		return r.token, nil
@@ -73,14 +78,14 @@ func (r *TokenRepository) SaveToken(token *Token) error {
 	}
 
 	for i := 1; i <= 5; i++ {
-		err = r.redisClient.WatchToken(string(data), r.key, token.ExpiresIn * time.Second)
+		err = r.redisClient.WatchToken(string(data), r.key, token.ExpiresIn*time.Second)
 		if err == nil {
 			r.token = token
 			return nil
 		}
-		waitTime := time.Duration(i*i*100) * time.Millisecond // Incremental wait time
+		waitTime := offset + time.Duration(i)*timedrift // Incremental wait time
 		log.Printf("WARNING | Failed to save token, attempt %d: %v. Retrying in %v", i, err, waitTime)
-		time.Sleep(waitTime)
+    time.Sleep(waitTime)
 	}
 	log.Printf("ERROR | Failed to save token, %v", err)
 	return err

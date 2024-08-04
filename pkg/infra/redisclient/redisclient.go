@@ -96,6 +96,37 @@ func (r *RedisClient) CheckAndSetWorkflow(ctx context.Context, tx *redis.Tx, wor
 	return err
 }
 
+func (r *RedisClient) WatchUser(user *models.Users, lockKey, userKey string, duration time.Duration) (inserted bool, err error) {
+	err = r.Client.Watch(r.Ctx, func(tx *redis.Tx) error {
+		cmds, err := tx.TxPipelined(r.Ctx, func(pipe redis.Pipeliner) error {
+			locked, err := pipe.SetNX(r.Ctx, lockKey, "dummy", duration).Result()
+			if err != nil {
+				return fmt.Errorf("ERROR | Cannot acquire lock: %v for user %s", err, user.Sub)
+			}
+			if !locked {
+				return fmt.Errorf("ERROR | Lock not acquired for user %s", user.Sub)
+			}
+
+			pipe.HSet(r.Ctx, userKey, redis.KeepTTL)
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("ERROR | Transacction failed: %v", err)
+		}
+
+		for _, cmd := range cmds {
+			if cmd.Err() != nil {
+				return fmt.Errorf("ERROR | Command failed: %v", cmd.Err())
+			}
+		}
+
+		inserted = true
+		return nil
+	})
+
+	return inserted, err
+}
+
 func (r *RedisClient) WatchToken(data string, key string, expires time.Duration) error {
 	err := r.Client.Watch(r.Ctx, func(tx *redis.Tx) error {
 		_, err := tx.TxPipelined(r.Ctx, func(pipe redis.Pipeliner) error {

@@ -2,7 +2,6 @@ package httpclient
 
 import (
 	"minireipaz/pkg/domain/models"
-
 )
 
 type UserRepository struct {

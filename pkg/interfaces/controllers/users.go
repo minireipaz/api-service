@@ -25,15 +25,19 @@ func (u *UserController) SyncUseWrithIDProvider(ctx *gin.Context) {
 	created, exist := u.userService.SynUser(&currentUser)
 	if !created && !exist {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error":  models.UserNameCannotCreate,
-			"status": http.StatusInternalServerError,
+			"error":   models.UserNameCannotCreate,
+			"status":  http.StatusInternalServerError,
+			"exist":   false,
+			"created": false,
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
-		"error":  "",
-		"status": http.StatusCreated,
+	ctx.JSON(http.StatusOK, gin.H{
+		"error":   "",
+		"status":  http.StatusOK,
+		"exist":   true,
+		"created": false,
 	})
 }
 

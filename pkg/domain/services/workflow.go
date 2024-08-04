@@ -2,7 +2,7 @@ package services
 
 import (
 	"log"
-	"math/rand"
+	"minireipaz/pkg/common"
 	"minireipaz/pkg/domain/models"
 	"minireipaz/pkg/domain/repos"
 	"time"
@@ -23,7 +23,7 @@ func NewWorkflowService(repo repos.WorkflowRepository, idGenerator IDService) *W
 }
 
 func (s *WorkflowService) CreateWorkflow(workflow *models.Workflow) (created bool, exist bool) {
-	for i := 0; i < models.MaxAttempts; i++ {
+	for i := 1; i < models.MaxAttempts; i++ {
 		workflow.UUID = s.idGenerator.GenerateWorkflowID()
 		created, exist := s.repo.Create(workflow)
 		if created {
@@ -31,10 +31,10 @@ func (s *WorkflowService) CreateWorkflow(workflow *models.Workflow) (created boo
 			workflow.UpdatedAt = time.Now().Format(models.LayoutTimestamp)
 			return true, false
 		}
-    if (exist) {
-      return false, true
-    }
-		waitTime := time.Duration(rand.Int63n(int64(models.MaxSleepDuration-models.MinSleepDuration))) + models.MinSleepDuration + models.SleepOffset
+		if exist {
+			return false, true
+		}
+		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
 		log.Printf("WARNING | Failed to create workflow, attempt %d:. Retrying in %v", i, waitTime)
 		time.Sleep(waitTime)
 	}

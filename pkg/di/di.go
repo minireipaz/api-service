@@ -20,12 +20,12 @@ func InitDependencies() (*controllers.WorkflowController, *services.AuthService,
 
 	userRedisClient := redisclient.NewRedisClient()
 	// userHttpClient := httpclient.NewUserClientHTTP()
-	userHTTPClient := &httpclient.HttpClientImpl{}
+	userHTTPClient := &httpclient.Impl{}
 	userBrokerClient := brokerclient.NewBrokerClient(kafkaConfig)
 
 	repoUserRedis := redisclient.NewUserRedisRepository(userRedisClient)
 	repoUserHTTP := httpclient.NewUserClientHTTP(userHTTPClient) /// .UserHTTPRepository(userHTTPClient)
-  repoUserBroker := brokerclient.NewUserKafkaRepository(userBrokerClient)
+	repoUserBroker := brokerclient.NewUserKafkaRepository(userBrokerClient)
 
 	userService := services.NewUserService(repoUserHTTP, repoUserRedis, repoUserBroker)
 	userController := controllers.NewUserController(userService)
@@ -37,5 +37,4 @@ func InitDependencies() (*controllers.WorkflowController, *services.AuthService,
 	workflowController := controllers.NewWorkflowController(workflowService, authService)
 
 	return workflowController, authService, userController
-
 }

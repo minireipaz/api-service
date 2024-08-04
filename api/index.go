@@ -7,10 +7,10 @@ import (
 
 	"log"
 	"minireipaz/pkg/config"
+	"minireipaz/pkg/di"
 	"minireipaz/pkg/honeycomb"
 	"minireipaz/pkg/interfaces/middlewares"
 	"minireipaz/pkg/interfaces/routes"
-  "minireipaz/pkg/di"
 	"net/http"
 )
 
@@ -53,7 +53,7 @@ func Init() {
 	gin.SetMode(gin.DebugMode)
 	app = gin.New()
 
-  worflowcontroller, authService, userController := di.InitDependencies()
+	worflowcontroller, authService, userController := di.InitDependencies()
 	middlewares.Register(app, authService)
 	routes.Register(app, worflowcontroller, userController)
 

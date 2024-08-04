@@ -3,6 +3,7 @@ package brokerclient
 import (
 	"encoding/json"
 	"log"
+	"minireipaz/pkg/common"
 	"minireipaz/pkg/domain/models"
 	"time"
 )
@@ -30,13 +31,13 @@ func (u *UserKafkaRepository) CreateUser(user *models.Users) (sended bool) {
 		return false
 	}
 
-	for i := 0; i < maxIntents; i++ {
+	for i := 1; i < maxIntents; i++ {
 		err = u.client.Produce("users.db.write", []byte(user.Sub), userJSON)
 		if err == nil {
 			return true
 		}
 
-		waitTime := offset + time.Duration(i)*timedrift // Incremental wait time
+		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
 		log.Printf("ERROR | Cannot connect to Broker, attempt %d: %v. Retrying in %v", i, err, waitTime)
 		time.Sleep(waitTime)
 	}

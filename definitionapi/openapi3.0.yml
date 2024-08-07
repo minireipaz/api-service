@@ -2,11 +2,17 @@ openapi: 3.0.3
 info:
   title: MiniReipaz API
   version: 1.0.0
-  description: API for managing workflows and users.
+  description: |
+    API for managing workflows, users, dashboard.
+
+    This API supports HTTPS connections. In development, we use self-signed certificates.
+    In production, we use certificates issued by a trusted Certificate Authority.
 
 servers:
-  - url: https://localhost:4020/api
-    description: Local server
+  - url: http://localhost:4020/api
+    description: Development Backend server (HTTP)
+  - url: https://vercle.com/api
+    description: Production server
 
 security:
   - BearerAuth: []
@@ -45,6 +51,10 @@ components:
 
     Workflow:
       type: object
+      required:
+        - sub
+        - workflowname
+        - directorytosave
       properties:
         sub:
           type: string
@@ -93,25 +103,35 @@ components:
           maxLength: 1000
           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         status:
-          type: string
+          type: integer
+          example: 1
           enum:
-            - active
-            - invited
-            - pending
-            - blocked
+            - 1  # active
+            - 2  # invited
+            - 3  # pending
+            - 4  # blocked
         roleId:
-          type: string
+          type: integer
+          example: 2
           enum:
-            - admin
-            - user
-            - moderator
-            - editor
-            - guest
-            - customer
-            - support
-            - manager
-            - analyst
-            - developer
+            - 1  # admin
+            - 2  # user
+            - 3  # moderator
+            - 4  # editor
+            - 5  # guest
+            - 6  # customer
+            - 7  # support
+            - 8  # manager
+            - 9  # analyst
+            - 10 # developer
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-06-01T10:00:00Z"
       required:
         - sub
       additionalProperties: false

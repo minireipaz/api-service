@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-type Users struct {
+type SyncUserRequest struct {
 	ID                       string     `json:"id,omitempty"`
-	AccessToken              string     `json:"access_token,omitempty"`
-	Sub                      string     `json:"sub"`
-	Status                   UserStatus `json:"status,omitempty"`
-	RoleID                   UserRoleID `json:"roleId,omitempty"`
+	AccessToken              string     `json:"access_token" binding:"omitempty,max=1000,alphanum"`
+	Sub                      string     `json:"sub" binding:"required,numeric,max=50"`
+	Status                   UserStatus `json:"status" binding:"omitempty,oneof=1 2 3 4"`
+	RoleID                   UserRoleID `json:"roleId" binding:"omitempty,oneof=1 2 3 4 5 6 7 8 9 10"`
 	ResetPasswordToken       *string    `json:"resetPasswordToken,omitempty"`
 	ResetPasswordTokenSentAt *time.Time `json:"resetPasswordTokenSentAt,omitempty"`
 	InvitationToken          *string    `json:"invitationToken,omitempty"`
@@ -41,16 +41,21 @@ const (
 	RoleAnalyst   UserRoleID = 9
 	RoleDeveloper UserRoleID = 10
 
-	UserInvalidJSON = "Invalid JSON data"
+	InvalidJSON = "Invalid JSON data"
 
-	UserSubExist         = "Sub already exists"
-	UserNameExist        = "username already exists"
-	UserCannotGenerate   = "error checking Sub existence"
-	UserNameCannotCreate = "error checking username existence"
-	UsertNameNotGenerate = "cannot create new user"
-
-	UserSubRequired = "Sub user is required"
-	UserSubMustBe   = "Sub user must greater than 3 characters"
+	UserSubExist           = "Sub already exists"
+	UserSubIsRequired      = "Sub is required"
+	UserNameExist          = "username already exists"
+	UserCannotGenerate     = "error checking Sub existence"
+	UserNameCannotCreate   = "error checking username existence"
+	UsertNameNotGenerate   = "cannot create new user"
+	UserSubInvalid         = "Sub must be a numeric string with max length of 50"
+	UserAccessTokenInvalid = "Access token must be a valid JWT with max length of 1000"
+	UserSubRequired        = "Sub user is required"
+	UserSubMustBe          = "Sub user must greater than 3 characters"
+	UserInvalidStatus      = "Invalid status"
+	UserInvalidRole        = "Invalid role ID"
+	AuthInvalid            = "Authorization header is required"
 )
 
 func (s UserStatus) String() string {
@@ -73,4 +78,27 @@ func UserStatusFromUint8(v uint8) (UserStatus, error) {
 		return UserStatus(v), nil
 	}
 	return 0, fmt.Errorf("invalid user status value: %d", v)
+}
+
+type SyncUserResponse struct {
+	Error   string `json:"error"`
+	Status  int    `json:"status"`
+	Exist   bool   `json:"exist"`
+	Created bool   `json:"created"`
+}
+
+type UnauthorizedError struct {
+	Error string `json:"error"`
+}
+
+type InvalidRequestError struct {
+	Error string `json:"error"`
+}
+
+type UnsupportedMediaTypeError struct {
+	Error string `json:"error"`
+}
+
+type TooManyRequestsError struct {
+	Error string `json:"error"`
 }

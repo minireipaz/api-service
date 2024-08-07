@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"minireipaz/pkg/domain/models"
 	"minireipaz/pkg/domain/services"
 	"net/http"
 	"strings"
@@ -18,16 +19,22 @@ func VerifyServiceUserToken(authService *services.AuthService, token string) (bo
 
 func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.ContentType() != "application/json" {
+			c.JSON(http.StatusUnsupportedMediaType, NewUnsupportedMediaTypeError("Only application/json is supported"))
+			c.Abort()
+			return
+		}
+
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+			c.JSON(http.StatusUnauthorized, NewUnauthorizedError(models.AuthInvalid))
 			c.Abort()
 			return
 		}
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header format must be Bearer {token}"})
+			c.JSON(http.StatusUnauthorized, NewUnauthorizedError(models.AuthInvalid))
 			c.Abort()
 			return
 		}
@@ -36,7 +43,7 @@ func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 
 		valid, err := VerifyServiceUserToken(authService, token)
 		if err != nil || !valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			c.JSON(http.StatusUnauthorized, NewUnauthorizedError(models.AuthInvalid))
 			c.Abort()
 			return
 		}

@@ -15,6 +15,6 @@ func NewUserClientHTTP(client HTTPClient) *UserRepository {
 	// }
 }
 
-func (u *UserRepository) Create(_ *models.Users) (created bool, exist bool) {
+func (u *UserRepository) Create(_ *models.SyncUserRequest) (created bool, exist bool) {
 	return false, false
 }

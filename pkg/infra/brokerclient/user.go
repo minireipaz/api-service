@@ -24,7 +24,7 @@ func NewUserKafkaRepository(client KafkaClient) *UserKafkaRepository {
 	}
 }
 
-func (u *UserKafkaRepository) CreateUser(user *models.Users) (sended bool) {
+func (u *UserKafkaRepository) CreateUser(user *models.SyncUserRequest) (sended bool) {
 	userJSON, err := json.Marshal(user)
 	if err != nil {
 		log.Printf("ERROR | Cannot transform to JSON %v", err)

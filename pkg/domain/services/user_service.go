@@ -9,7 +9,7 @@ import (
 )
 
 type UserServiceInterface interface {
-	SynUser(user *models.Users) (created, exist bool)
+	SynUser(user *models.SyncUserRequest) (created, exist bool)
 }
 
 var _ UserServiceInterface = (*UserService)(nil)
@@ -28,7 +28,7 @@ func NewUserService(newRepoHTTP *httpclient.UserRepository, newRepoRedis *redisc
 	}
 }
 
-func (u *UserService) SynUser(user *models.Users) (created, exist bool) {
+func (u *UserService) SynUser(user *models.SyncUserRequest) (created, exist bool) {
 	exist, err := u.repoRedis.CheckUserExist(user)
 	if err != nil {
 		log.Printf("ERROR | Cannot access to repo redis %v", err)
@@ -67,7 +67,7 @@ func (u *UserService) SynUser(user *models.Users) (created, exist bool) {
 	return sended, false
 }
 
-func setUserDefaults(user *models.Users) {
+func setUserDefaults(user *models.SyncUserRequest) {
 	if user.Status == 0 {
 		user.Status = models.StatusActive
 	}

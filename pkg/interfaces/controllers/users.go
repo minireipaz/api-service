@@ -22,18 +22,18 @@ func NewUserController(newUserService services.UserServiceInterface) *UserContro
 }
 
 func (u *UserController) SyncUseWrithIDProvider(ctx *gin.Context) {
-	currentUser := ctx.MustGet("user").(models.Users)
+	currentUser := ctx.MustGet("user").(models.SyncUserRequest)
 	created, exist := u.userService.SynUser(&currentUser)
-	response := gin.H{
-		"error":   "",
-		"status":  http.StatusOK,
-		"exist":   exist,
-		"created": created,
+	response := models.SyncUserResponse{
+		Error:   "",
+		Status:  http.StatusOK,
+		Exist:   exist,
+		Created: created,
 	}
 	if !created && !exist {
 		log.Printf("WARN | User not created and does not exist: %s", currentUser.Sub)
-		response["error"] = models.UserNameCannotCreate
-		response["status"] = http.StatusInternalServerError
+		response.Error = models.UserNameCannotCreate
+		response.Status = http.StatusInternalServerError
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}

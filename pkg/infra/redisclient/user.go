@@ -18,7 +18,7 @@ func NewUserRedisRepository(newRedisClient *RedisClient) *UserRedisRepository {
 	}
 }
 
-func (u *UserRedisRepository) CheckUserExist(user *models.Users) (exist bool, err error) {
+func (u *UserRedisRepository) CheckUserExist(user *models.SyncUserRequest) (exist bool, err error) {
 	key := fmt.Sprintf("users:%s", user.Sub)
 	for i := 1; i < models.MaxAttempts; i++ {
 		countKeys, err := u.redisClient.Exists(key)
@@ -32,7 +32,7 @@ func (u *UserRedisRepository) CheckUserExist(user *models.Users) (exist bool, er
 	return false, fmt.Errorf("ERROR | Cannot check if user exist %s. More than 10 intents", user.Sub)
 }
 
-func (u *UserRedisRepository) CheckLockExist(user *models.Users) (exist bool, err error) {
+func (u *UserRedisRepository) CheckLockExist(user *models.SyncUserRequest) (exist bool, err error) {
 	key := fmt.Sprintf("lock:users:%s", user.Sub)
 	for i := 1; i < models.MaxAttempts; i++ {
 		countKeys, err := u.redisClient.Exists(key)
@@ -46,7 +46,7 @@ func (u *UserRedisRepository) CheckLockExist(user *models.Users) (exist bool, er
 	return false, fmt.Errorf("ERROR | Cannot check if exist lock for user %s. More than 10 intents", user.Sub)
 }
 
-func (u *UserRedisRepository) InsertUser(user *models.Users) (inserted bool, err error) {
+func (u *UserRedisRepository) InsertUser(user *models.SyncUserRequest) (inserted bool, err error) {
 	lockKey := fmt.Sprintf("lock:user:%s", user.Sub)
 	userKey := fmt.Sprintf("users:%s", user.Sub)
 	duration := 20 * time.Second
@@ -68,7 +68,7 @@ func (u *UserRedisRepository) InsertUser(user *models.Users) (inserted bool, err
 	return false, fmt.Errorf("ERROR | Cannot insert user %s. More than 10 intents", user.Sub)
 }
 
-func (u *UserRedisRepository) AddLock(user *models.Users) (locked bool, err error) {
+func (u *UserRedisRepository) AddLock(user *models.SyncUserRequest) (locked bool, err error) {
 	key := fmt.Sprintf("lock:user:%s", user.Sub)
 	duration := 20 * time.Second
 
@@ -85,7 +85,7 @@ func (u *UserRedisRepository) AddLock(user *models.Users) (locked bool, err erro
 	return false, fmt.Errorf("ERROR | Cannot create lock for user %s. More than 10 intents", user.Sub)
 }
 
-func (u *UserRedisRepository) RemoveLock(user *models.Users) (removedLock bool) {
+func (u *UserRedisRepository) RemoveLock(user *models.SyncUserRequest) (removedLock bool) {
 	key := fmt.Sprintf("lock:user:%s", user.Sub)
 	for i := 1; i < models.MaxAttempts; i++ {
 		countRemoved, err := u.redisClient.removeLock(key)

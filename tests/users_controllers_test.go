@@ -20,7 +20,7 @@ type MockUserService struct {
 	mock.Mock
 }
 
-func (m *MockUserService) SynUser(user *models.Users) (created, exist bool) {
+func (m *MockUserService) SynUser(user *models.SyncUserRequest) (created, exist bool) {
 	args := m.Called(user)
 	return args.Bool(0), args.Bool(1)
 }
@@ -30,7 +30,7 @@ func TestSyncUseWrithIDProvider(t *testing.T) {
 		name      string
 		mockSetup func(m *MockUserService)
 		want      int
-		user      models.Users
+		user      models.SyncUserRequest
 	}{
 		{
 			name: "User exists",
@@ -38,7 +38,7 @@ func TestSyncUseWrithIDProvider(t *testing.T) {
 				m.On("SynUser", mock.Anything).Return(false, true)
 			},
 			want: http.StatusOK,
-			user: models.Users{Sub: "testUser"},
+			user: models.SyncUserRequest{Sub: "testUser"},
 		},
 		{
 			name: "User created",
@@ -46,7 +46,7 @@ func TestSyncUseWrithIDProvider(t *testing.T) {
 				m.On("SynUser", mock.Anything).Return(true, false)
 			},
 			want: http.StatusOK,
-			user: models.Users{Sub: "testUser"},
+			user: models.SyncUserRequest{Sub: "testUser"},
 		},
 		{
 			name: "User creation failed",
@@ -54,7 +54,7 @@ func TestSyncUseWrithIDProvider(t *testing.T) {
 				m.On("SynUser", mock.Anything).Return(false, false)
 			},
 			want: http.StatusInternalServerError,
-			user: models.Users{Sub: "testUser"},
+			user: models.SyncUserRequest{Sub: "testUser"},
 		},
 	}
 

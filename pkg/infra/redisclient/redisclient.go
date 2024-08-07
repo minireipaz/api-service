@@ -96,7 +96,7 @@ func (r *RedisClient) CheckAndSetWorkflow(ctx context.Context, tx *redis.Tx, wor
 	return err
 }
 
-func (r *RedisClient) WatchUser(user *models.Users, lockKey, userKey string, duration time.Duration) (inserted bool, err error) {
+func (r *RedisClient) WatchUser(user *models.SyncUserRequest, lockKey, userKey string, duration time.Duration) (inserted bool, err error) {
 	err = r.Client.Watch(r.Ctx, func(tx *redis.Tx) error {
 		cmds, err := tx.TxPipelined(r.Ctx, func(pipe redis.Pipeliner) error {
 			locked, err := pipe.SetNX(r.Ctx, lockKey, "dummy", duration).Result()

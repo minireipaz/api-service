@@ -155,3 +155,5 @@ dist-ssr
 
 .editorconfig
 data/.tinyb
+
+localcerts

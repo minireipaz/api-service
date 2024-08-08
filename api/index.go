@@ -36,7 +36,7 @@ func RunWebserver() {
 
 func Init() {
 	log.Print("---- Init From Init ----")
-	config.LoadEnvs()
+	config.LoadEnvs(".")
 	ctx := context.Background()
 	tp, exp, err := honeycomb.SetupHoneyComb(ctx)
 

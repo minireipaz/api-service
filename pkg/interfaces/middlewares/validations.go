@@ -83,7 +83,6 @@ func ValidateUser() gin.HandlerFunc {
 			return
 		}
 
-		// Validación de `sub`
 		if strings.TrimSpace(currentUser.Sub) == "" {
 			c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserSubIsRequired))
 			c.Abort()
@@ -95,8 +94,7 @@ func ValidateUser() gin.HandlerFunc {
 			return
 		}
 
-		// Validación de `access_token`
-		if currentUser.AccessToken != "" && (len(currentUser.AccessToken) > 1000 || len(currentUser.AccessToken) < 600) { // || !regexp.MustCompile(`^[A-Za-z0-9._-]+$`).MatchString(currentUser.AccessToken))
+		if currentUser.AccessToken != "" && (len(currentUser.AccessToken) > 1000 || len(currentUser.AccessToken) < 100) { // || !regexp.MustCompile(`^[A-Za-z0-9._-]+$`).MatchString(currentUser.AccessToken))
 			c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserAccessTokenInvalid))
 			c.Abort()
 			return

@@ -48,7 +48,7 @@ func (u *UserService) SynUser(user *models.SyncUserRequest) (created, exist bool
 		return false, false
 	}
 	// InsertUser insert user and generate a lock for about 20 seconds
-	locked, err := u.repoRedis.InsertUser(user)
+	locked, lockExists, userExists, err := u.repoRedis.InsertUser(user)
 	if err != nil {
 		// TODO: Dead letter
 		log.Printf("ERROR | Needs to Added to dead letter %s", user.Sub)
@@ -56,6 +56,14 @@ func (u *UserService) SynUser(user *models.SyncUserRequest) (created, exist bool
 
 	if !locked {
 		log.Printf("WARN | Cannot created lock for user %s", user.Sub)
+	}
+
+	if userExists {
+		return false, true
+	}
+
+	if userExists && !lockExists {
+		return false, true
 	}
 
 	setUserDefaults(user) // default roleID

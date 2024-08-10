@@ -46,26 +46,29 @@ func (u *UserRedisRepository) CheckLockExist(user *models.SyncUserRequest) (exis
 	return false, fmt.Errorf("ERROR | Cannot check if exist lock for user %s. More than 10 intents", user.Sub)
 }
 
-func (u *UserRedisRepository) InsertUser(user *models.SyncUserRequest) (inserted bool, err error) {
+func (u *UserRedisRepository) InsertUser(user *models.SyncUserRequest) (inserted, lockExists, userExists bool, err error) {
 	lockKey := fmt.Sprintf("lock:user:%s", user.Sub)
 	userKey := fmt.Sprintf("users:%s", user.Sub)
 	duration := 20 * time.Second
 
 	for i := 1; i < models.MaxAttempts; i++ {
-		inserted, err = u.redisClient.WatchUser(
+		inserted, lockExists, userExists, err = u.redisClient.WatchUser(
 			user,
 			lockKey,
 			userKey,
 			duration,
 		) // Transacction
 		if err == nil && inserted {
-			return inserted, err
+			return inserted, lockExists, userExists, err
+		}
+		if lockExists || userExists {
+			return inserted, lockExists, userExists, err
 		}
 		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
 		log.Printf("ERROR | Cannot check if exist lock for user %s, attempt %d: %v. Retrying in %v", user.Sub, i, err, waitTime)
 		time.Sleep(waitTime)
 	}
-	return false, fmt.Errorf("ERROR | Cannot insert user %s. More than 10 intents", user.Sub)
+	return inserted, lockExists, userExists, fmt.Errorf("ERROR | Cannot insert user %s. More than 10 intents", user.Sub)
 }
 
 func (u *UserRedisRepository) AddLock(user *models.SyncUserRequest) (locked bool, err error) {

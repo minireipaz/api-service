@@ -96,35 +96,83 @@ func (r *RedisClient) CheckAndSetWorkflow(ctx context.Context, tx *redis.Tx, wor
 	return err
 }
 
-func (r *RedisClient) WatchUser(user *models.SyncUserRequest, lockKey, userKey string, duration time.Duration) (inserted bool, err error) {
+func (r *RedisClient) WatchUser(user *models.SyncUserRequest, lockKey, userKey string, duration time.Duration) (inserted bool, lockExists bool, userExists bool, err error) {
 	err = r.Client.Watch(r.Ctx, func(tx *redis.Tx) error {
-		cmds, err := tx.TxPipelined(r.Ctx, func(pipe redis.Pipeliner) error {
-			locked, err := pipe.SetNX(r.Ctx, lockKey, "dummy", duration).Result()
-			if err != nil {
-				return fmt.Errorf("ERROR | Cannot acquire lock: %v for user %s", err, user.Sub)
-			}
-			if !locked {
-				return fmt.Errorf("ERROR | Lock not acquired for user %s", user.Sub)
-			}
-
-			pipe.HSet(r.Ctx, userKey, redis.KeepTTL)
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("ERROR | Transacction failed: %v", err)
+		lockExists, err = checkLockExists(r.Ctx, tx, lockKey, user.Sub)
+		if err != nil || lockExists {
+			return err
 		}
 
-		for _, cmd := range cmds {
-			if cmd.Err() != nil {
-				return fmt.Errorf("ERROR | Command failed: %v", cmd.Err())
-			}
+		userExists, err = checkUserExists(r.Ctx, tx, userKey, user.Sub)
+		if err != nil || userExists {
+			return err
 		}
 
-		inserted = true
+		inserted, err = executePipeline(r.Ctx, tx, lockKey, userKey, duration, user.Sub)
+		return err
+	}, lockKey)
+
+	return inserted, lockExists, userExists, err
+}
+
+func checkLockExists(ctx context.Context, tx *redis.Tx, lockKey, userSub string) (bool, error) {
+	lockExistsVal, err := tx.Exists(ctx, lockKey).Result()
+	if err != nil {
+		return false, fmt.Errorf("ERROR | Failed to check lock existence: %v", err)
+	}
+	if lockExistsVal == 1 {
+		return true, fmt.Errorf("ERROR | Lock already exists for user %s", userSub)
+	}
+	return false, nil
+}
+
+func checkUserExists(ctx context.Context, tx *redis.Tx, userKey, userSub string) (bool, error) {
+	userExistsVal, err := tx.Exists(ctx, userKey).Result()
+	if err != nil {
+		return false, fmt.Errorf("ERROR | Failed to check user existence: %v", err)
+	}
+	if userExistsVal == 1 {
+		return true, fmt.Errorf("ERROR | User %s already exists", userSub)
+	}
+	return false, nil
+}
+
+func executePipeline(ctx context.Context, tx *redis.Tx, lockKey, userKey string, duration time.Duration, userSub string) (bool, error) {
+	cmds, err := tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+		pipe.SetNX(ctx, lockKey, "_", duration)
+		pipe.HSet(ctx, userKey, "_", "_") // dummy value
 		return nil
 	})
+	if err != nil {
+		return false, fmt.Errorf("ERROR | Transaction failed: %v", err)
+	}
 
-	return inserted, err
+	for i, cmd := range cmds {
+		if cmd.Err() != nil {
+			return false, fmt.Errorf("ERROR | Command failed: %v for user %s", cmd.Err(), userSub)
+		}
+
+		switch i {
+		case 0: // SetNX command
+			lockSet, err := cmd.(*redis.BoolCmd).Result()
+			if err != nil {
+				return false, fmt.Errorf("ERROR | Failed to get SetNX result: %v", err)
+			}
+			if !lockSet {
+				return false, fmt.Errorf("ERROR | Lock already exists for user %s", userSub)
+			}
+		case 1: // HSet command
+			fieldsCreated, err := cmd.(*redis.IntCmd).Result()
+			if err != nil {
+				return false, fmt.Errorf("ERROR | Failed to get HSet result: %v", err)
+			}
+			if fieldsCreated == 0 {
+				return false, fmt.Errorf("ERROR | User %s already exists", userSub)
+			}
+		}
+	}
+
+	return true, nil
 }
 
 func (r *RedisClient) WatchToken(data string, key string, expires time.Duration) error {

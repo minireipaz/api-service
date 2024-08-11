@@ -1,4 +1,4 @@
-package redisclient_test
+package tests
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	config.LoadEnvs("../../..")
+	config.LoadEnvs("../")
 	os.Exit(m.Run())
 }
 

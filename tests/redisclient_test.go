@@ -1,4 +1,4 @@
-package redisclient_test
+package tests
 
 import (
 	"context"

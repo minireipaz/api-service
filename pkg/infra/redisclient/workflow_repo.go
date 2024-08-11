@@ -41,6 +41,11 @@ func (r *WorkflowRepository) GetByUUID(id uuid.UUID) (*models.Workflow, error) {
 		return nil, err
 	}
 
+	if workflowJSON == "" { // not exist key
+		// TODO: better
+		return nil, nil
+	}
+
 	var workflow models.Workflow
 	err = json.Unmarshal([]byte(workflowJSON), &workflow)
 	if err != nil {

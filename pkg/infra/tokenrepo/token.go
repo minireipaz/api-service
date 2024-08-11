@@ -47,7 +47,7 @@ func (r *TokenRepository) GetToken() (*Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	if data == "" {
+	if data == "" { // Not exist key in redis
 		return nil, fmt.Errorf("no token found in redis")
 	}
 
@@ -86,4 +86,10 @@ func (r *TokenRepository) SaveToken(token *Token) error {
 	}
 	log.Printf("ERROR | Failed to save token, %v", err)
 	return err
+}
+
+func (r *TokenRepository) SetToken(token *Token) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.token = token
 }

@@ -22,8 +22,8 @@ func (u *UserRedisRepository) CheckUserExist(user *models.SyncUserRequest) (exis
 	key := fmt.Sprintf("users:%s", user.Sub)
 	for i := 1; i < models.MaxAttempts; i++ {
 		countKeys, err := u.redisClient.Exists(key)
-		if err == nil && countKeys == 1 {
-			return true, err
+		if err == nil {
+			return countKeys == 1, err
 		}
 		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
 		log.Printf("ERROR | Cannot check if exist lock for user %s, attempt %d: %v. Retrying in %v", user.Sub, i, err, waitTime)
@@ -36,8 +36,8 @@ func (u *UserRedisRepository) CheckLockExist(user *models.SyncUserRequest) (exis
 	key := fmt.Sprintf("lock:users:%s", user.Sub)
 	for i := 1; i < models.MaxAttempts; i++ {
 		countKeys, err := u.redisClient.Exists(key)
-		if err == nil && countKeys == 1 {
-			return true, err
+		if err == nil {
+			return countKeys == 1, err
 		}
 		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
 		log.Printf("ERROR | Cannot check if exist lock for user %s, attempt %d: %v. Retrying in %v", user.Sub, i, err, waitTime)

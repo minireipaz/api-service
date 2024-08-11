@@ -59,7 +59,14 @@ func (r *RedisClient) Exists(key string) (int64, error) {
 }
 
 func (r *RedisClient) Get(key string) (string, error) {
-	return r.Client.Get(r.Ctx, key).Result()
+	result, err := r.Client.Get(r.Ctx, key).Result()
+	if err == redis.Nil {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return result, nil
 }
 
 func (r *RedisClient) WatchWorkflow(workflow *models.Workflow) error {

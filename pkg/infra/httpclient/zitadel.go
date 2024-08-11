@@ -11,48 +11,52 @@ import (
 
 type ZitadelClient struct {
 	apiURL     string
-	client     *http.Client
+	ClientHTTP HTTPClient
 	userID     string
 	privateKey []byte
 	keyID      string
 }
 
 const (
-	twoDays = 48 * time.Hour
+	TwoDays = 48 * time.Hour
 )
 
 func NewZitadelClient(apiURL, userID, privateKey, keyID string) *ZitadelClient {
 	return &ZitadelClient{
 		apiURL:     apiURL,
-		client:     &http.Client{Timeout: 10 * time.Second},
+		ClientHTTP: &Impl{}, // &http.Client{Timeout: 10 * time.Second},
 		userID:     userID,
 		privateKey: []byte(privateKey),
 		keyID:      keyID,
 	}
 }
 
+func (z *ZitadelClient) SetHTTPClient(client HTTPClient) {
+	z.ClientHTTP = client
+}
+
 func (z *ZitadelClient) GetAccessToken(jwt string) (string, time.Duration, error) {
 	data := fmt.Sprintf("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&scope=openid&assertion=%s", jwt)
 	req, err := http.NewRequest("POST", z.apiURL+"/oauth/v2/token", bytes.NewBufferString(data))
 	if err != nil {
-		return "", twoDays, err
+		return "", TwoDays, err
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := z.client.Do(req)
+	resp, err := z.ClientHTTP.Do(req)
 	if err != nil {
-		return "", twoDays, err
+		return "", TwoDays, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", twoDays, fmt.Errorf("ERROR | failed to get access token: %s", resp.Status)
+		return "", TwoDays, fmt.Errorf("ERROR | failed to get access token: %d", resp.StatusCode)
 	}
 
 	var result tokenrepo.Token
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return "", twoDays, fmt.Errorf("ERROR | cannot get decode token: %v", err)
+		return "", TwoDays, fmt.Errorf("ERROR | cannot get decode token: %v", err)
 	}
 
 	return result.AccessToken, result.ExpiresIn, nil

@@ -9,7 +9,6 @@ import (
 	"minireipaz/pkg/infra/redisclient"
 	"sync"
 	"time"
-
 )
 
 type Token struct {

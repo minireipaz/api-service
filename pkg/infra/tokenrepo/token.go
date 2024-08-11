@@ -9,6 +9,7 @@ import (
 	"minireipaz/pkg/infra/redisclient"
 	"sync"
 	"time"
+
 )
 
 type Token struct {
@@ -74,12 +75,15 @@ func (r *TokenRepository) SaveToken(token *Token) error {
 		return err
 	}
 
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= models.MaxAttempts; i++ {
 		err = r.redisClient.WatchToken(string(data), r.key, token.ExpiresIn*time.Second)
 		if err == nil {
 			r.token = token
 			return nil
 		}
+		// if err == redis.Nil { // in really rare xtreme cases
+		//   r.redisClient.Set(r.key, "")
+		// }
 		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
 		log.Printf("WARNING | Failed to save token, attempt %d: %v. Retrying in %v", i, err, waitTime)
 		time.Sleep(waitTime)

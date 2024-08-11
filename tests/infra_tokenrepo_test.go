@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"minireipaz/pkg/infra/redisclient"
 	"minireipaz/pkg/infra/tokenrepo"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTokenRepository_GetToken(t *testing.T) {
@@ -139,6 +140,58 @@ func TestTokenRepository_GetToken(t *testing.T) {
 				assert.NotNil(t, token)
 				assert.Equal(t, tt.expectedRes.AccessToken, token.AccessToken)
 				assert.Equal(t, tt.expectedRes.TokenType, token.TokenType)
+			}
+		})
+	}
+}
+
+func TestTokenRepository_SaveToken(t *testing.T) {
+	r := redisclient.NewRedisClient()
+	tokenRepo := tokenrepo.NewTokenRepository(r)
+
+	tests := []struct {
+		name        string
+		setup       func()
+		token       *tokenrepo.Token
+		expectedErr string
+	}{
+		{
+			name: "successfully save token",
+			setup: func() {
+			},
+			token: &tokenrepo.Token{
+				ObtainedAt:  time.Now(),
+				AccessToken: "valid-token",
+				TokenType:   "Bearer",
+				ExpiresIn:   3600, // 1 hora
+			},
+			expectedErr: "",
+		},
+		{
+			name: "error saving token",
+			setup: func() {
+				r.Client.Close()
+			},
+			token: &tokenrepo.Token{
+				ObtainedAt:  time.Now(),
+				AccessToken: "valid-token",
+				TokenType:   "Bearer",
+				ExpiresIn:   3600,
+			},
+			expectedErr: "redis: client is closed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			err := tokenRepo.SaveToken(tt.token)
+
+			if tt.expectedErr != "" {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedErr)
+			} else {
+				assert.NoError(t, err)
 			}
 		})
 	}

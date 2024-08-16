@@ -105,7 +105,7 @@ func (r *RedisClient) CheckAndSetWorkflow(ctx context.Context, tx *redis.Tx, wor
 
 func (r *RedisClient) WatchUser(user *models.SyncUserRequest, lockKey, userKey string, duration time.Duration) (inserted bool, lockExists bool, userExists bool, err error) {
 	err = r.Client.Watch(r.Ctx, func(tx *redis.Tx) error {
-		lockExists, err = checkLockExists(r.Ctx, tx, lockKey, user.Sub)
+		lockExists, err = checkLockExists(r.Ctx, tx, lockKey, user.Sub) // Quizas no es necesario
 		if err != nil || lockExists {
 			return err
 		}

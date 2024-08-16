@@ -13,10 +13,6 @@ type UserController struct {
 	userService services.UserServiceInterface
 }
 
-// type UserController struct {
-// 	userService *services.UserService
-// }
-
 func NewUserController(newUserService services.UserServiceInterface) *UserController {
 	return &UserController{userService: newUserService}
 }

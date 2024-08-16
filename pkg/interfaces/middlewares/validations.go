@@ -70,3 +70,15 @@ func ValidateUser() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func ValidateUserAuth() gin.HandlerFunc {
+  return func(c *gin.Context) {
+    var currentUser models.SyncUserRequest
+		if err := c.ShouldBindJSON(&currentUser); err != nil {
+			c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
+			c.Abort()
+			return
+		}
+    c.Next()
+  }
+}

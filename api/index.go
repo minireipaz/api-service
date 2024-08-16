@@ -53,9 +53,9 @@ func Init() {
 	gin.SetMode(gin.DebugMode)
 	app = gin.New()
 
-	worflowcontroller, authService, userController := di.InitDependencies()
+	worflowcontroller, authService, userController, dashboardController, authController := di.InitDependencies()
 	middlewares.Register(app, authService)
-	routes.Register(app, worflowcontroller, userController)
+	routes.Register(app, worflowcontroller, userController, dashboardController, authController)
 
 	RunWebserver()
 }

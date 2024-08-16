@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(app *gin.Engine, workflowController *controllers.WorkflowController, userController *controllers.UserController) {
+func Register(app *gin.Engine, workflowController *controllers.WorkflowController, userController *controllers.UserController, dashboardController *controllers.DashboardController, authController *controllers.AuthController) {
 	app.NoRoute(ErrRouter)
 
 	// Routes in groups
@@ -27,6 +27,16 @@ func Register(app *gin.Engine, workflowController *controllers.WorkflowControlle
 		{
 			users.POST("", middlewares.ValidateUser(), userController.SyncUseWrithIDProvider)
 			users.GET("/:stub", userController.GetUserByStub)
+		}
+
+		dashboard := api.Group("/dashboard")
+		{
+			dashboard.GET("/:id", middlewares.ValidateUserAuth(), dashboardController.GetUserDashboardByID)
+		}
+
+		auth := api.Group("/auth")
+		{
+			auth.GET("/verify/:id", authController.VerifyUserToken)
 		}
 	}
 }

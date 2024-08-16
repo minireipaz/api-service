@@ -9,14 +9,14 @@ import (
 	"minireipaz/pkg/interfaces/controllers"
 )
 
-func InitDependencies() (*controllers.WorkflowController, *services.AuthService, *controllers.UserController) {
+func InitDependencies() (*controllers.WorkflowController, *services.AuthService, *controllers.UserController, *controllers.DashboardController, *controllers.AuthController) {
 	configZitadel := config.NewZitaldelEnvConfig()
 	kafkaConfig := config.NewKafkaEnvConfig()
 
 	// init autentication
 	authContext := controllers.NewAuthContext(configZitadel)
-	authContext.GetAuthController()
 	authService := authContext.GetAuthService()
+	authController := authContext.GetAuthController()
 
 	userRedisClient := redisclient.NewRedisClient()
 	// userHttpClient := httpclient.NewUserClientHTTP()
@@ -24,7 +24,7 @@ func InitDependencies() (*controllers.WorkflowController, *services.AuthService,
 	userBrokerClient := brokerclient.NewBrokerClient(kafkaConfig)
 
 	repoUserRedis := redisclient.NewUserRedisRepository(userRedisClient)
-	repoUserHTTP := httpclient.NewUserClientHTTP(userHTTPClient) /// .UserHTTPRepository(userHTTPClient)
+	repoUserHTTP := httpclient.NewUserClientHTTP(userHTTPClient)
 	repoUserBroker := brokerclient.NewUserKafkaRepository(userBrokerClient)
 
 	userService := services.NewUserService(repoUserHTTP, repoUserRedis, repoUserBroker)
@@ -36,5 +36,10 @@ func InitDependencies() (*controllers.WorkflowController, *services.AuthService,
 	workflowService := services.NewWorkflowService(repo, idService)
 	workflowController := controllers.NewWorkflowController(workflowService, authService)
 
-	return workflowController, authService, userController
+	dashboardHTTPClient := &httpclient.Impl{}
+	dashboardRepo := httpclient.NewDashboardRepository(dashboardHTTPClient)
+	dashboardService := services.NewDashboardService(dashboardRepo)
+	dashboardController := controllers.NewDashboardController(dashboardService, authService)
+
+	return workflowController, authService, userController, dashboardController, authController
 }

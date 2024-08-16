@@ -70,7 +70,7 @@ func (s *AuthService) GetAccessToken() (string, error) {
 	return existingToken.AccessToken, nil
 }
 
-func (s *AuthService) VerifyToken(token string) (bool, error) {
+func (s *AuthService) VerifyServiceUserToken(token string) (bool, error) {
 	masterToken, err := s.GetAccessToken()
 	if err != nil {
 		return false, err
@@ -84,6 +84,10 @@ func (s *AuthService) verifyWithIDProvider(token *tokenrepo.Token) (bool, error)
 		return false, fmt.Errorf("ERROR | AccessToken cannot be empty")
 	}
 	return true, nil
+}
+
+func (s *AuthService) VerifyUserToken(token *tokenrepo.Token) (bool, error) {
+  return false, nil
 }
 
 // func (s *AuthService) verifyUserAccessTokenWithIDProvider(token *tokenrepo.Token) (bool, error) {

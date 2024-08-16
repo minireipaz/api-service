@@ -10,7 +10,7 @@ import (
 )
 
 func VerifyServiceUserToken(authService *services.AuthService, token string) (bool, error) {
-	isValid, err := authService.VerifyToken(token)
+	isValid, err := authService.VerifyServiceUserToken(token)
 	if err != nil {
 		return false, err
 	}
@@ -32,14 +32,12 @@ func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 			return
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
+		token := strings.TrimPrefix(authHeader, "Bearer ")
+		if token == "" {
 			c.JSON(http.StatusUnauthorized, NewUnauthorizedError(models.AuthInvalid))
 			c.Abort()
 			return
 		}
-
-		token := parts[1]
 
 		valid, err := VerifyServiceUserToken(authService, token)
 		if err != nil || !valid {
@@ -47,8 +45,6 @@ func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
-		// TODO: Client Access Token
 
 		c.Next()
 	}

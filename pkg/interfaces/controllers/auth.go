@@ -9,25 +9,27 @@ import (
 	"minireipaz/pkg/infra/redisclient"
 	"minireipaz/pkg/infra/tokenrepo"
 	"sync"
+
+	"github.com/gin-gonic/gin"
 )
+
+// type AuthController struct {
+// }
 
 type AuthController struct {
 	authService *services.AuthService
+	// authController *AuthController
+	once   sync.Once
+	config config.ZitadelConfig
 }
 
-type AuthContext struct {
-	authController *AuthController
-	once           sync.Once
-	config         config.ZitadelConfig
-}
-
-func NewAuthContext(cfg config.ZitadelConfig) *AuthContext {
-	return &AuthContext{
+func NewAuthContext(cfg config.ZitadelConfig) *AuthController {
+	return &AuthController{
 		config: cfg,
 	}
 }
 
-func (ac *AuthContext) GetAuthController() *AuthController {
+func (ac *AuthController) GetAuthController() *AuthController {
 	ac.once.Do(func() {
 		zitadelClient := httpclient.NewZitadelClient(
 			ac.config.GetZitadelURI(),
@@ -50,12 +52,18 @@ func (ac *AuthContext) GetAuthController() *AuthController {
 		if err != nil {
 			log.Panicf("ERROR | %v", err)
 		}
-
-		ac.authController = &AuthController{authService: authService}
+		ac.authService = authService
+		// ac.authController = &AuthController{authService: authService}
 	})
-	return ac.authController
+	return ac
 }
 
-func (ac *AuthContext) GetAuthService() *services.AuthService {
+func (ac *AuthController) GetAuthService() *services.AuthService {
 	return ac.GetAuthController().authService
+}
+
+func (ac *AuthController) VerifyUserToken(ctx *gin.Context) {
+	userToken := ctx.Param("id")
+	log.Printf("%v", userToken)
+	return
 }

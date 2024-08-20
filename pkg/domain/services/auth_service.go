@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"minireipaz/pkg/auth"
+	"minireipaz/pkg/domain/models"
 	"minireipaz/pkg/infra/httpclient"
 	"minireipaz/pkg/infra/tokenrepo"
 	"time"
@@ -27,20 +28,28 @@ func NewAuthService(jwtGenerator *auth.JWTGenerator, zitadelClient *httpclient.Z
 	}
 }
 
+func (s *AuthService) GenerateIntrospectJWT(duration time.Duration) string {
+	jwt, err := s.jwtGenerator.GenerateInstrospectJWT(duration)
+	if err != nil {
+		log.Panicf("ERROR | Cannot generate JWT %v", err)
+	}
+	return jwt
+}
+
 func (s *AuthService) GenerateNewToken() (string, error) {
-	jwt, err := s.jwtGenerator.GenerateJWT(twoDays)
+	jwt, err := s.jwtGenerator.GenerateServiceUserJWT(twoDays)
 	if err != nil {
 		log.Panicf("ERROR | Cannot generate JWT %v", err)
 	}
 
-	accessToken, expiresIn, err := s.zitadelClient.GetAccessToken(jwt)
+	accessToken, expiresIn, err := s.zitadelClient.GetServiceUserAccessToken(jwt)
 	if err != nil {
 		log.Panicf("ERROR | Cannot acces to ACCESS token %v", err)
 	}
 
 	token := &tokenrepo.Token{
 		AccessToken: accessToken,
-		ExpiresIn:   expiresIn,
+		ExpiresIn:   expiresIn - models.SaveOffset, // -10 seconds
 		ObtainedAt:  time.Now(),
 	}
 
@@ -52,7 +61,7 @@ func (s *AuthService) GenerateNewToken() (string, error) {
 	return accessToken, nil
 }
 
-func (s *AuthService) GetAccessToken() (string, error) {
+func (s *AuthService) GetServiceUserAccessToken() (string, error) {
 	existingToken, err := s.tokenRepo.GetToken()
 	if err != nil && (err.Error() == "token expired" || err.Error() == "no token found in redis") {
 		return s.GenerateNewToken()
@@ -71,7 +80,7 @@ func (s *AuthService) GetAccessToken() (string, error) {
 }
 
 func (s *AuthService) VerifyServiceUserToken(token string) (bool, error) {
-	masterToken, err := s.GetAccessToken()
+	masterToken, err := s.GetServiceUserAccessToken()
 	if err != nil {
 		return false, err
 	}
@@ -86,8 +95,18 @@ func (s *AuthService) verifyWithIDProvider(token *tokenrepo.Token) (bool, error)
 	return true, nil
 }
 
-func (s *AuthService) VerifyUserToken(token *tokenrepo.Token) (bool, error) {
-  return false, nil
+func (s *AuthService) VerifyUserToken(userToken string) bool {
+	if userToken == "" {
+		return false
+	}
+
+	introspectJWT := s.GenerateIntrospectJWT(time.Hour)
+	isValid, err := s.zitadelClient.ValidateUserToken(userToken, introspectJWT)
+	if err != nil {
+		log.Printf("ERROR | Cannot get UserToken %s error: %v", userToken, err)
+		return false
+	}
+	return isValid
 }
 
 // func (s *AuthService) verifyUserAccessTokenWithIDProvider(token *tokenrepo.Token) (bool, error) {

@@ -28,7 +28,7 @@ type TokenRepository struct {
 func NewTokenRepository(redisClient *redisclient.RedisClient) *TokenRepository {
 	return &TokenRepository{
 		redisClient: redisClient,
-		key:         "auth:token",
+		key:         "serviceuser:token",
 	}
 }
 
@@ -75,7 +75,7 @@ func (r *TokenRepository) SaveToken(token *Token) error {
 	}
 
 	for i := 1; i <= models.MaxAttempts; i++ {
-		err = r.redisClient.WatchToken(string(data), r.key, token.ExpiresIn*time.Second)
+		err = r.redisClient.WatchToken(string(data), r.key, (token.ExpiresIn)*time.Second)
 		if err == nil {
 			r.token = token
 			return nil

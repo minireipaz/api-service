@@ -7,33 +7,74 @@ import (
 )
 
 type JWTGenerator struct {
-	serviceUserID string
-	privateKey    []byte
-	keyID         string
-	apiURL        string
+	ServiceUser ServiceUserConfig
+	BackendApp  BackendAppConfig
+	apiURL      string
+	clientID    string
+	projectID   string
 }
 
-func NewJWTGenerator(serviceUserID, privateKey, keyID, apiURL string) *JWTGenerator {
+type ServiceUserConfig struct {
+	UserID     string
+	PrivateKey []byte
+	KeyID      string
+}
+
+type BackendAppConfig struct {
+	KeyID      string
+	PrivateKey []byte
+	AppID      string
+}
+
+type JWTGeneratorConfig struct {
+	ServiceUser ServiceUserConfig
+	BackendApp  BackendAppConfig
+	APIURL      string
+	ProjectID   string
+	ClientID    string
+}
+
+func NewJWTGenerator(config JWTGeneratorConfig) *JWTGenerator {
 	return &JWTGenerator{
-		serviceUserID: serviceUserID,
-		privateKey:    []byte(privateKey),
-		keyID:         keyID,
-		apiURL:        apiURL,
+		ServiceUser: config.ServiceUser,
+		BackendApp:  config.BackendApp,
+		apiURL:      config.APIURL,
+		projectID:   config.ProjectID,
+		clientID:    config.ClientID,
 	}
 }
 
-func (j *JWTGenerator) GenerateJWT(timeExpire time.Duration) (string, error) {
+func (j *JWTGenerator) GenerateInstrospectJWT(timeExpire time.Duration) (string, error) {
 	now := time.Now()
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iss": j.serviceUserID,
-		"sub": j.serviceUserID,
+		"iss": j.clientID,
+		"sub": j.clientID,
 		"aud": j.apiURL,
 		"exp": now.Add(timeExpire).Unix(),
 		"iat": now.Unix(),
 	})
-	token.Header["kid"] = j.keyID
+	token.Header["kid"] = j.BackendApp.KeyID
 
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(j.privateKey)
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(j.BackendApp.PrivateKey)
+	if err != nil {
+		return "", err
+	}
+
+	return token.SignedString(privateKey)
+}
+
+func (j *JWTGenerator) GenerateServiceUserJWT(timeExpire time.Duration) (string, error) {
+	now := time.Now()
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss": j.ServiceUser.UserID,
+		"sub": j.ServiceUser.UserID,
+		"aud": j.apiURL,
+		"exp": now.Add(timeExpire).Unix(),
+		"iat": now.Unix(),
+	})
+	token.Header["kid"] = j.ServiceUser.KeyID
+
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(j.ServiceUser.PrivateKey)
 	if err != nil {
 		return "", err
 	}

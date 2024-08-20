@@ -86,26 +86,37 @@ func TestGetAccessToken(t *testing.T) {
 			configZitadel := config.NewZitaldelEnvConfig()
 			client := httpclient.NewZitadelClient(
 				configZitadel.GetZitadelURI(),
-				configZitadel.GetZitadelKeyUserID(),
-				configZitadel.GetZitadelKeyPrivate(),
-				configZitadel.GetZitadelKeyID(),
+				configZitadel.GetZitadelServiceUserID(),
+				configZitadel.GetZitadelServiceUserKeyPrivate(),
+				configZitadel.GetZitadelServiceUserKeyID(),
+				configZitadel.GetZitadelProjectID(),
+				configZitadel.GetZitadelKeyClientID(),
 			)
 			// Crear el generador de JWT
-			jwtGenerator := auth.NewJWTGenerator(
-				configZitadel.GetZitadelKeyUserID(),
-				configZitadel.GetZitadelKeyPrivate(),
-				configZitadel.GetZitadelKeyID(),
-				configZitadel.GetZitadelURI(),
-			)
+			jwtGenerator := auth.NewJWTGenerator(auth.JWTGeneratorConfig{
+				ServiceUser: auth.ServiceUserConfig{
+					UserID:     configZitadel.GetZitadelServiceUserID(),
+					PrivateKey: []byte(configZitadel.GetZitadelServiceUserKeyPrivate()),
+					KeyID:      configZitadel.GetZitadelServiceUserKeyID(),
+				},
+				BackendApp: auth.BackendAppConfig{
+					AppID:      configZitadel.GetZitadelBackendID(),
+					PrivateKey: []byte(configZitadel.GetZitadelBackendKeyPrivate()),
+					KeyID:      configZitadel.GetZitadelBackendKeyID(),
+				},
+				APIURL:    configZitadel.GetZitadelURI(),
+				ProjectID: configZitadel.GetZitadelProjectID(),
+				ClientID:  configZitadel.GetZitadelKeyClientID(),
+			})
 
 			client.SetHTTPClient(mockClient)
 
-			jwt, err := jwtGenerator.GenerateJWT(models.TwoDays)
+			jwt, err := jwtGenerator.GenerateServiceUserJWT(models.TwoDays)
 			if err != nil {
 				t.Errorf("%v", err)
 			}
 
-			token, expires, err := client.GetAccessToken(jwt)
+			token, expires, err := client.GetServiceUserAccessToken(jwt)
 
 			if tt.expectedErr != "" {
 				assert.Error(t, err)

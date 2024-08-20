@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func VerifyServiceUserToken(authService *services.AuthService, token string) (bool, error) {
+func verifyServiceUserToken(authService *services.AuthService, token string) (bool, error) {
 	isValid, err := authService.VerifyServiceUserToken(token)
 	if err != nil {
 		return false, err
@@ -39,7 +39,7 @@ func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 			return
 		}
 
-		valid, err := VerifyServiceUserToken(authService, token)
+		valid, err := verifyServiceUserToken(authService, token)
 		if err != nil || !valid {
 			c.JSON(http.StatusUnauthorized, NewUnauthorizedError(models.AuthInvalid))
 			c.Abort()

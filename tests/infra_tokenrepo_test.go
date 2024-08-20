@@ -25,7 +25,7 @@ func TestTokenRepository_GetToken(t *testing.T) {
 		{
 			name: "no token found in redis and in memory",
 			setup: func() {
-				r.Client.Del(r.Ctx, "auth:token")
+				r.Client.Del(r.Ctx, "serviceuser:token")
 				tokenRepo.SetToken(nil)
 			},
 			expectedRes: nil,
@@ -42,7 +42,7 @@ func TestTokenRepository_GetToken(t *testing.T) {
 					ExpiresIn:   3600, // 1 hora
 				}
 				data, _ := json.Marshal(token)
-				r.Set("auth:token", string(data))
+				r.Set("serviceuser:token", string(data))
 			},
 			expectedRes: &tokenrepo.Token{
 				ObtainedAt:  time.Now(),
@@ -55,7 +55,7 @@ func TestTokenRepository_GetToken(t *testing.T) {
 		{
 			name: "no token found in redis but in memory",
 			setup: func() {
-				r.Client.Del(r.Ctx, "auth:token")
+				r.Client.Del(r.Ctx, "serviceuser:token")
 			},
 			expectedRes: &tokenrepo.Token{ // val from before test case
 				ObtainedAt:  time.Now(),
@@ -109,7 +109,7 @@ func TestTokenRepository_GetToken(t *testing.T) {
 					ExpiresIn:   3600, // 1 hora
 				}
 				data, _ := json.Marshal(token)
-				r.Set("auth:token", string(data))
+				r.Set("serviceuser:token", string(data))
 			},
 			expectedRes: nil,
 			expectedErr: "token expired",

@@ -39,14 +39,6 @@ func (ac *AuthController) GetAuthController() *AuthController {
 			ac.config.GetZitadelKeyClientID(),
 		)
 
-		// jwtGenerator := auth.NewJWTGenerator(
-		// 	ac.config.GetZitadelServiceUserID(),
-		// 	ac.config.GetZitadelServiceUserKeyPrivate(),
-		// 	ac.config.GetZitadelKeyID(),
-		// 	ac.config.GetZitadelURI(),
-		// 	ac.config.GetZitadelProjectID(),
-		// 	ac.config.GetZitadelKeyClientID(),
-		// )
 		jwtGenerator := auth.NewJWTGenerator(auth.JWTGeneratorConfig{
 			ServiceUser: auth.ServiceUserConfig{
 				UserID:     ac.config.GetZitadelServiceUserID(),

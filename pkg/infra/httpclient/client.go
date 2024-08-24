@@ -11,9 +11,9 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-type Impl struct{}
+type ClientImpl struct{}
 
-func (c *Impl) Do(req *http.Request) (*http.Response, error) {
+func (c *ClientImpl) Do(req *http.Request) (*http.Response, error) {
 	client := &http.Client{
 		Timeout: 15 * time.Second,
 	}

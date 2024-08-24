@@ -27,6 +27,11 @@ func (m *MockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	return args.Get(0).(*http.Response), args.Error(1)
 }
 
+// func (m *MockHTTPClient) DoRequest(req *http.Request) (*http.Response, error) {
+// 	args := m.Called(req)
+// 	return args.Get(0).(*http.Response), args.Error(1)
+// }
+
 func TestGetAccessToken(t *testing.T) {
 	tests := []struct {
 		name           string

@@ -7,7 +7,7 @@ type ZitadelConfig interface {
 	GetZitadelServiceUserID() string
 	GetZitadelServiceUserKeyPrivate() string
 	GetZitadelServiceUserKeyID() string
-  GetZitadelBackendID() string
+	GetZitadelBackendID() string
 	GetZitadelBackendKeyPrivate() string
 	GetZitadelBackendKeyID() string
 	GetZitadelKeyClientID() string

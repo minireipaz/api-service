@@ -29,7 +29,7 @@ const (
 func NewZitadelClient(apiURL, userID, privateKey, keyID, projectID, clientID string) *ZitadelClient {
 	return &ZitadelClient{
 		apiURL:     apiURL,
-		ClientHTTP: &Impl{}, // &http.Client{Timeout: 10 * time.Second},
+		ClientHTTP: &ClientImpl{}, // &http.Client{Timeout: 10 * time.Second},
 		userID:     userID,
 		privateKey: []byte(privateKey),
 		keyID:      keyID,

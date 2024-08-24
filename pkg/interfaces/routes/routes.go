@@ -31,7 +31,7 @@ func Register(app *gin.Engine, workflowController *controllers.WorkflowControlle
 
 		dashboard := api.Group("/dashboard")
 		{
-			dashboard.GET("/:id", middlewares.ValidateUserAuth(), dashboardController.GetUserDashboardByID)
+			dashboard.GET("/:iduser", middlewares.ValidateUserAuth(), dashboardController.GetUserDashboardByID)
 		}
 
 		auth := api.Group("/auth")

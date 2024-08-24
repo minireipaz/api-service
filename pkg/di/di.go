@@ -12,6 +12,7 @@ import (
 func InitDependencies() (*controllers.WorkflowController, *services.AuthService, *controllers.UserController, *controllers.DashboardController, *controllers.AuthController) {
 	configZitadel := config.NewZitaldelEnvConfig()
 	kafkaConfig := config.NewKafkaEnvConfig()
+	clickhouseConfig := config.NewClickhouseEnvConfig()
 
 	// init autentication
 	authContext := controllers.NewAuthContext(configZitadel)
@@ -20,7 +21,7 @@ func InitDependencies() (*controllers.WorkflowController, *services.AuthService,
 
 	userRedisClient := redisclient.NewRedisClient()
 	// userHttpClient := httpclient.NewUserClientHTTP()
-	userHTTPClient := &httpclient.Impl{}
+	userHTTPClient := &httpclient.ClientImpl{}
 	userBrokerClient := brokerclient.NewBrokerClient(kafkaConfig)
 
 	repoUserRedis := redisclient.NewUserRedisRepository(userRedisClient)
@@ -36,8 +37,8 @@ func InitDependencies() (*controllers.WorkflowController, *services.AuthService,
 	workflowService := services.NewWorkflowService(repo, idService)
 	workflowController := controllers.NewWorkflowController(workflowService, authService)
 
-	dashboardHTTPClient := &httpclient.Impl{}
-	dashboardRepo := httpclient.NewDashboardRepository(dashboardHTTPClient)
+	dashboardHTTPClient := &httpclient.ClientImpl{}
+	dashboardRepo := httpclient.NewDashboardRepository(dashboardHTTPClient, clickhouseConfig)
 	dashboardService := services.NewDashboardService(dashboardRepo)
 	dashboardController := controllers.NewDashboardController(dashboardService, authService)
 

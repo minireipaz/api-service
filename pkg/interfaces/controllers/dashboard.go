@@ -1,14 +1,13 @@
 package controllers
 
 import (
-	// "fmt"
-	// "minireipaz/pkg/domain/models"
+	"fmt"
 	"log"
+	"minireipaz/pkg/domain/models"
 	"minireipaz/pkg/domain/services"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
-	// "net/http"
-	// "github.com/gin-gonic/gin"
 )
 
 type DashboardController struct {
@@ -23,7 +22,18 @@ func NewDashboardController(service *services.DashboardService, authServ *servic
 	}
 }
 
-func (d *DashboardController) GetUserDashboardByID(c *gin.Context) {
-  id := c.Param("id")
-  log.Printf("%v", id)
+func (d *DashboardController) GetUserDashboardByID(ctx *gin.Context) {
+	id := ctx.Param("iduser")
+	dashboardInfo, err := d.service.QueryDashboardInfo(id)
+	resp := models.ResponseInfoDashboard{
+		Data:   *dashboardInfo,
+		Status: http.StatusOK,
+		Error:  "",
+	}
+	if err != nil {
+		log.Printf("ERROR | %v", err)
+		resp.Status = http.StatusInternalServerError
+		resp.Error = fmt.Sprintf("ERROR | %v", err)
+	}
+	ctx.JSON(resp.Status, resp)
 }

@@ -89,3 +89,43 @@ graph TD
     C -.->|Long Polling| D
     D -.->|Long Polling| L
 ```
+
+### Errors
+TODO
+
+### Retries
+
+#### Retries with General Error Classification
+
+- **HTTP 4xx errors:** Generally not candidates for automatic retries, with specific exceptions.
+- **HTTP 5xx errors:** Potential candidates for retries, but with caution.
+- **Network or timeout errors:** Usually appropriate for retry attempts.
+
+#### Retries with Error-Specific Retry Strategies
+
+- **HTTP 429 (Too Many Requests):** Implement retries with exponential backoff, respecting "Retry-After" headers if present.
+- **HTTP 500, 502, 503, 504:** Retry with exponential backoff.
+- **Connection or timeout errors:** Immediate retry for the first couple of attempts, then apply backoff.
+- **HTTP 400, 401, 403, 404, etc.:** No automatic retries; log for review.
+
+#### Exponential Backoff Implementation
+
+1. Initialize with a base delay (e.g., 1 second).
+2. Apply exponential factor on each attempt: 1s, 2s, 4s, 8s, etc.
+3. Incorporate random jitter to prevent retry synchronization.
+4. Set a maximum delay threshold (e.g., 60 seconds).
+
+#### Retry Attempts
+
+- Define a maximum retry count (e.g., 3-5) based on the operation type.
+- Consider the total acceptable time window for the operation.
+
+#### Persistent Failure Handling
+
+- After exhausting retry attempts, log detailed error information.
+- Implement a circuit breaker pattern to prevent system overload.
+
+#### Monitoring and Logging
+
+- Log each retry attempt with relevant data (error type, attempt number, delay).
+- Set up alerts for recurring error patterns.

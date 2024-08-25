@@ -3,7 +3,10 @@ package redisclient
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"minireipaz/pkg/common"
 	"minireipaz/pkg/domain/models"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -17,12 +20,17 @@ func NewWorkflowRepository(redisClient *RedisClient) *WorkflowRepository {
 }
 
 func (r *WorkflowRepository) Create(workflow *models.Workflow) (created bool, exist bool) {
-	err := r.redisClient.WatchWorkflow(workflow)
-	if err.Error() == models.WorkflowNameExist {
+	err := r.redisClient.SetWorkflow(workflow)
+	if err != nil {
 		return false, true
 	}
 
-	return false, false
+	return true, false
+}
+
+func (r *WorkflowRepository) Remove(workflow *models.Workflow) bool {
+	err := r.redisClient.RemoveWorkflow(workflow)
+	return err != nil
 }
 
 func (r *WorkflowRepository) ValidateUUID(workflow *models.Workflow) bool {
@@ -52,4 +60,35 @@ func (r *WorkflowRepository) GetByUUID(id uuid.UUID) (*models.Workflow, error) {
 		return nil, err
 	}
 	return &workflow, nil
+}
+
+func (r *WorkflowRepository) AcquireLock(key, value string, expiration time.Duration) (locked bool, err error) {
+	for i := 1; i < models.MaxAttempts; i++ {
+		locked, err = r.redisClient.AcquireLock(key, value, expiration)
+		if err == nil {
+			return locked, err
+		}
+
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
+		log.Printf("ERROR | Cannot connect to redis for key %s, attempt %d: %v. Retrying in %v", key, i, err, waitTime)
+		time.Sleep(waitTime)
+	}
+	return false, fmt.Errorf("ERROR | Cannot create lock for key %s. More than 10 intents", key)
+}
+
+func (r *WorkflowRepository) RemoveLock(key string) bool {
+	for i := 1; i < models.MaxAttempts; i++ {
+		countRemoved, err := r.redisClient.RemoveLock(key)
+		if countRemoved == 0 {
+			log.Printf("WARNING | Key already removed, previuous process take more than 20 seconds")
+		}
+		if err == nil && countRemoved <= 1 {
+			return true
+		}
+
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
+		log.Printf("ERROR | Cannot connect to redis for key %s, attempt %d: %v. Retrying in %v", key, i, err, waitTime)
+		time.Sleep(waitTime)
+	}
+	return false
 }

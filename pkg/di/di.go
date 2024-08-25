@@ -31,9 +31,11 @@ func InitDependencies() (*controllers.WorkflowController, *services.AuthService,
 	userController := controllers.NewUserController(userService)
 
 	workflowRedisClient := redisclient.NewRedisClient()
+	workflowBrokerClient := brokerclient.NewBrokerClient(kafkaConfig)
 	repoWorkflowRedis := redisclient.NewWorkflowRepository(workflowRedisClient)
+	repoWorkflowBroker := brokerclient.NewWorkflowKafkaRepository(workflowBrokerClient)
 	idService := services.NewUUIDService()
-	workflowService := services.NewWorkflowService(repoWorkflowRedis, idService)
+	workflowService := services.NewWorkflowService(repoWorkflowRedis, repoWorkflowBroker, idService)
 	workflowController := controllers.NewWorkflowController(workflowService, authService)
 
 	dashboardHTTPClient := &httpclient.ClientImpl{}

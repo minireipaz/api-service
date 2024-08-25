@@ -13,6 +13,7 @@ const (
 	WorkflowNameRequired          = "Workflow name is required"
 	WorkflowNameInvalid           = "Workflow name must be alphanumeric with max length of 255"
 	WorkflowNameExist             = "workflow name already exists for this user"
+	WorkflowNameNotExist          = "workflow name not exists for this user"
 	UUIDCannotGenerate            = "error checking UUID existence"
 	WorkflowNameCannotGenerate    = "error checking workflow name existence"
 	WorkflowNameNotGenerate       = "cannot create new workflow"
@@ -25,8 +26,8 @@ const (
 type Workflow struct {
 	Sub             string    `json:"sub,omitempty"`
 	UUID            uuid.UUID `json:"uuid,omitempty"`
-	WorkflowName    string    `json:"workflow_name" binding:"required,alphanum,max=255"`
-	DirectoryToSave string    `json:"directory_to_save" binding:"required,alphanum,max=255"`
+	WorkflowName    string    `json:"workflowname" binding:"required,alphanum,max=255"`
+	DirectoryToSave string    `json:"directorytosave" binding:"required,alphanum,max=255"`
 	CreatedAt       string    `json:"createdat,omitempty"`
 	UpdatedAt       string    `json:"updatedat,omitempty"`
 }

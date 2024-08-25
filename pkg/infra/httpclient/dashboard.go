@@ -60,8 +60,3 @@ func (d *DashboardRepository) GetWorkflowData(userID string) (*models.InfoDashbo
 
 	return &result, nil
 }
-
-// func (c *DashboardRepository) setHeaders(req *http.Request, token string) {
-// 	req.Header.Set("Content-Type", "application/json")
-// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-// }

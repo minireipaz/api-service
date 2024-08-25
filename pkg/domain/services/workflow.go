@@ -11,13 +11,13 @@ import (
 )
 
 type WorkflowService struct {
-	repo        repos.WorkflowRepository
+	redisRepo   repos.WorkflowRedisRepoInterface
 	idGenerator IDService
 }
 
-func NewWorkflowService(repo repos.WorkflowRepository, idGenerator IDService) *WorkflowService {
+func NewWorkflowService(repoRedis repos.WorkflowRedisRepoInterface, idGenerator IDService) *WorkflowService {
 	return &WorkflowService{
-		repo:        repo,
+		redisRepo:   repoRedis,
 		idGenerator: idGenerator,
 	}
 }
@@ -25,7 +25,7 @@ func NewWorkflowService(repo repos.WorkflowRepository, idGenerator IDService) *W
 func (s *WorkflowService) CreateWorkflow(workflow *models.Workflow) (created bool, exist bool) {
 	for i := 1; i < models.MaxAttempts; i++ {
 		workflow.UUID = s.idGenerator.GenerateWorkflowID()
-		created, exist := s.repo.Create(workflow)
+		created, exist := s.redisRepo.Create(workflow)
 		if created {
 			workflow.CreatedAt = time.Now().Format(models.LayoutTimestamp)
 			workflow.UpdatedAt = time.Now().Format(models.LayoutTimestamp)
@@ -44,5 +44,5 @@ func (s *WorkflowService) CreateWorkflow(workflow *models.Workflow) (created boo
 }
 
 func (s *WorkflowService) GetWorkflow(uuid uuid.UUID) (*models.Workflow, error) {
-	return s.repo.GetByUUID(uuid)
+	return s.redisRepo.GetByUUID(uuid)
 }

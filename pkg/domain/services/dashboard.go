@@ -2,18 +2,18 @@ package services
 
 import (
 	"minireipaz/pkg/domain/models"
-	"minireipaz/pkg/infra/httpclient"
+	"minireipaz/pkg/domain/repos"
 )
 
 type DashboardService struct {
-	dashboardRepo *httpclient.DashboardRepository
+	dashboardHTTPRepo repos.DashboardHTTPRepository
 }
 
-func NewDashboardService(repo *httpclient.DashboardRepository) *DashboardService {
-	return &DashboardService{dashboardRepo: repo}
+func NewDashboardService(repo repos.DashboardHTTPRepository) *DashboardService {
+	return &DashboardService{dashboardHTTPRepo: repo}
 }
 
 func (d *DashboardService) QueryDashboardInfo(userID string) (*models.InfoDashboard, error) {
-	infoDashboard, err := d.dashboardRepo.GetWorkflowData(userID)
+	infoDashboard, err := d.dashboardHTTPRepo.GetWorkflowData(userID)
 	return infoDashboard, err
 }

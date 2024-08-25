@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type WorkflowRepository interface {
+type WorkflowRedisRepoInterface interface {
 	Create(workflow *models.Workflow) (created bool, exist bool)
 	ValidateUUID(workflow *models.Workflow) bool
 	ValidateWorkflowName(workflow *models.Workflow) bool

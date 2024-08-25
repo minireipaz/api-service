@@ -1,20 +1,9 @@
 package httpclient
 
-import (
-	"minireipaz/pkg/domain/models"
-)
-
-type UserRepository struct {
+type UserHTTPRepository struct {
 	client HTTPClient
 }
 
-func NewUserClientHTTP(client HTTPClient) *UserRepository {
-	return &UserRepository{client: client}
-	// return &UserHTTPClient{
-	//   client: &http.Client{Timeout: 10 * time.Second},
-	// }
-}
-
-func (u *UserRepository) Create(_ *models.SyncUserRequest) (created bool, exist bool) {
-	return false, false
+func NewUserClientHTTP(client HTTPClient) *UserHTTPRepository {
+	return &UserHTTPRepository{client: client}
 }

@@ -3,9 +3,10 @@ package services
 import (
 	"fmt"
 	"log"
-	"minireipaz/pkg/auth"
+
 	"minireipaz/pkg/domain/models"
-	"minireipaz/pkg/infra/httpclient"
+	"minireipaz/pkg/domain/repos"
+
 	"minireipaz/pkg/infra/tokenrepo"
 	"time"
 )
@@ -15,12 +16,12 @@ const (
 )
 
 type AuthService struct {
-	jwtGenerator  *auth.JWTGenerator
-	zitadelClient *httpclient.ZitadelClient
-	tokenRepo     *tokenrepo.TokenRepository
+	jwtGenerator  repos.JWTGenerator
+	zitadelClient repos.ZitadelClient
+	tokenRepo     repos.TokenRepository
 }
 
-func NewAuthService(jwtGenerator *auth.JWTGenerator, zitadelClient *httpclient.ZitadelClient, tokenRepo *tokenrepo.TokenRepository) *AuthService {
+func NewAuthService(jwtGenerator repos.JWTGenerator, zitadelClient repos.ZitadelClient, tokenRepo repos.TokenRepository) *AuthService {
 	return &AuthService{
 		jwtGenerator:  jwtGenerator,
 		zitadelClient: zitadelClient,
@@ -44,7 +45,8 @@ func (s *AuthService) GenerateNewToken() (string, error) {
 
 	accessToken, expiresIn, err := s.zitadelClient.GetServiceUserAccessToken(jwt)
 	if err != nil {
-		log.Panicf("ERROR | Cannot acces to ACCESS token %v", err)
+		log.Printf("ERROR | Cannot acces to ACCESS token %v", err)
+		return "", fmt.Errorf("ERROR | Cannot acces to ACCESS token %v", err)
 	}
 
 	token := &tokenrepo.Token{
@@ -55,7 +57,8 @@ func (s *AuthService) GenerateNewToken() (string, error) {
 
 	err = s.tokenRepo.SaveToken(token)
 	if err != nil {
-		log.Panicf("ERROR | Failed to save token, %v", err)
+		log.Printf("ERROR | Failed to save token, %v", err)
+		return "", fmt.Errorf("ERROR | Failed to save token, %v", err)
 	}
 
 	return accessToken, nil
@@ -72,7 +75,7 @@ func (s *AuthService) GetServiceUserAccessToken() (string, error) {
 		return s.GenerateNewToken()
 	}
 	// TODO: Verify Service USER access token with ID Provider
-	isValid, err := s.verifyWithIDProvider(existingToken)
+	isValid, err := s.VerifyWithIDProvider(existingToken)
 	if !isValid || err != nil {
 		return s.GenerateNewToken()
 	}
@@ -87,7 +90,7 @@ func (s *AuthService) VerifyServiceUserToken(token string) (bool, error) {
 	return masterToken == token, err
 }
 
-func (s *AuthService) verifyWithIDProvider(token *tokenrepo.Token) (bool, error) {
+func (s *AuthService) VerifyWithIDProvider(token *tokenrepo.Token) (bool, error) {
 	// TODO: verify with IDProvider
 	if token.AccessToken == "" { /// dummy check
 		return false, fmt.Errorf("ERROR | AccessToken cannot be empty")
@@ -108,11 +111,3 @@ func (s *AuthService) VerifyUserToken(userToken string) bool {
 	}
 	return isValid
 }
-
-// func (s *AuthService) verifyUserAccessTokenWithIDProvider(token *tokenrepo.Token) (bool, error) {
-//   // TODO: verify with IDProvider
-//   if token.AccessToken == "" { /// dummy check
-//     return false, nil
-//   }
-// 	return true, nil
-// }

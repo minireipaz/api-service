@@ -2,23 +2,22 @@ package common
 
 import (
 	"crypto/rand"
+	"math"
 	"math/big"
-	"minireipaz/pkg/domain/models"
 	"time"
 )
+func RandomDuration(max, min time.Duration, attempt int) time.Duration {
+	baseWait := min * time.Duration(math.Pow(2, float64(attempt)))
 
-func RandomDuration(max, min time.Duration, i int) time.Duration {
-	var rangeDuration time.Duration
-	if max > min {
-		rangeDuration = max - min
-	} else {
-		rangeDuration = min - max
-	}
-
-	nBig, err := rand.Int(rand.Reader, big.NewInt(int64(rangeDuration)))
+	jitterRange := int64(max - min)
+	jitterBig, err := rand.Int(rand.Reader, big.NewInt(jitterRange))
 	if err != nil {
-		return time.Second
+		return baseWait
 	}
 
-	return (min + time.Duration(nBig.Int64()) + models.SleepOffset) * time.Duration(i*int(time.Second))
+	jitter := time.Duration(jitterBig.Int64()) + min
+
+	waitTime := baseWait + jitter
+
+	return waitTime
 }

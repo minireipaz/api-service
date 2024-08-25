@@ -25,7 +25,7 @@ func (u *UserRedisRepository) CheckUserExist(user *models.SyncUserRequest) (exis
 		if err == nil {
 			return countKeys == 1, err
 		}
-		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
 		log.Printf("ERROR | Cannot check if exist lock for user %s, attempt %d: %v. Retrying in %v", user.Sub, i, err, waitTime)
 		time.Sleep(waitTime)
 	}
@@ -39,7 +39,7 @@ func (u *UserRedisRepository) CheckLockExist(user *models.SyncUserRequest) (exis
 		if err == nil {
 			return countKeys == 1, err
 		}
-		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
 		log.Printf("ERROR | Cannot check if exist lock for user %s, attempt %d: %v. Retrying in %v", user.Sub, i, err, waitTime)
 		time.Sleep(waitTime)
 	}
@@ -64,7 +64,7 @@ func (u *UserRedisRepository) InsertUser(user *models.SyncUserRequest) (inserted
 		if lockExists || userExists {
 			return inserted, lockExists, userExists, err
 		}
-		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
 		log.Printf("ERROR | Cannot check if exist lock for user %s, attempt %d: %v. Retrying in %v", user.Sub, i, err, waitTime)
 		time.Sleep(waitTime)
 	}
@@ -76,12 +76,12 @@ func (u *UserRedisRepository) AddLock(user *models.SyncUserRequest) (locked bool
 	duration := 20 * time.Second
 
 	for i := 1; i < models.MaxAttempts; i++ {
-		locked, err = u.redisClient.acquireLock(key, "dummy", duration)
+		locked, err = u.redisClient.AcquireLock(key, "dummy", duration)
 		if err == nil {
 			return locked, err
 		}
 
-		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
 		log.Printf("ERROR | Cannot create lock for user %s, attempt %d: %v. Retrying in %v", user.Sub, i, err, waitTime)
 		time.Sleep(waitTime)
 	}
@@ -91,7 +91,7 @@ func (u *UserRedisRepository) AddLock(user *models.SyncUserRequest) (locked bool
 func (u *UserRedisRepository) RemoveLock(user *models.SyncUserRequest) (removedLock bool) {
 	key := fmt.Sprintf("lock:user:%s", user.Sub)
 	for i := 1; i < models.MaxAttempts; i++ {
-		countRemoved, err := u.redisClient.removeLock(key)
+		countRemoved, err := u.redisClient.RemoveLock(key)
 		if countRemoved == 0 {
 			log.Printf("WARNING | Key already removed, previuous process take more than 20 seconds")
 		}
@@ -99,7 +99,7 @@ func (u *UserRedisRepository) RemoveLock(user *models.SyncUserRequest) (removedL
 			return true
 		}
 
-		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
 		log.Printf("ERROR | Cannot connect to redis for user %s, attempt %d: %v. Retrying in %v", user.Sub, i, err, waitTime)
 		time.Sleep(waitTime)
 	}

@@ -83,7 +83,7 @@ func (r *TokenRepository) SaveToken(token *Token) error {
 		// if err == redis.Nil { // in really rare xtreme cases
 		//   r.redisClient.Set(r.key, "")
 		// }
-		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
 		log.Printf("WARNING | Failed to save token, attempt %d: %v. Retrying in %v", i, err, waitTime)
 		time.Sleep(waitTime)
 	}

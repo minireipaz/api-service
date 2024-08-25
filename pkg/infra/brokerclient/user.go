@@ -8,12 +8,6 @@ import (
 	"time"
 )
 
-const (
-	offset     = 1 * time.Second
-	timedrift  = 500 * time.Millisecond
-	maxIntents = 10
-)
-
 type UserKafkaRepository struct {
 	client KafkaClient
 }
@@ -31,13 +25,13 @@ func (u *UserKafkaRepository) CreateUser(user *models.SyncUserRequest) (sended b
 		return false
 	}
 
-	for i := 1; i < maxIntents; i++ {
+	for i := 1; i < models.MaxAttempts; i++ {
 		err = u.client.Produce("users.db.write", []byte(user.Sub), userJSON)
 		if err == nil {
 			return true
 		}
 
-		waitTime := common.RandomDuration(models.MaxSleepDuration, models.MinSleepDuration, i)
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
 		log.Printf("ERROR | Cannot connect to Broker, attempt %d: %v. Retrying in %v", i, err, waitTime)
 		time.Sleep(waitTime)
 	}

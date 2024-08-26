@@ -82,20 +82,21 @@ func (r *RedisClient) CheckAndModifyWorkflow(ctx context.Context, tx *redis.Tx, 
 		return fmt.Errorf(models.UUIDCannotGenerate)
 	}
 
-	nameExists, err := tx.HExists(ctx, fmt.Sprintf("users:%s", workflow.Sub), workflow.WorkflowName).Result()
-	if err != nil {
-		log.Printf("ERROR | checking workflow name existence: %v", err)
-		return fmt.Errorf(models.WorkflowNameCannotGenerate)
-	}
+	// not necesary
+	// nameExists, err := tx.HExists(ctx, fmt.Sprintf("users:%s", workflow.Sub), workflow.WorkflowName).Result()
+	// if err != nil {
+	// 	log.Printf("ERROR | checking workflow name existence: %v", err)
+	// 	return fmt.Errorf(models.WorkflowNameCannotGenerate)
+	// }
 
 	switch operation {
 	case "set":
 		if uuidExists {
 			return fmt.Errorf(models.UUIDExist)
 		}
-		if !nameExists {
-			return fmt.Errorf(models.WorkflowNameNotExist)
-		}
+		// if nameExists {
+		// 	return fmt.Errorf(models.WorkflowNameExist)
+		// }
 		return r.setWorkflow(ctx, tx, workflow)
 	case "remove":
 		// if !uuidExists {

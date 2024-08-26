@@ -48,7 +48,7 @@ func (w *WorkflowKafkaRepository) PublishCommand(workflowCommand WorkflowCommand
 	}
 
 	for i := 1; i < models.MaxAttempts; i++ {
-		err = w.client.Produce("workflows.commands", []byte(key), command)
+		err = w.client.Produce("workflows.command", []byte(key), command)
 		if err == nil {
 			return true
 		}

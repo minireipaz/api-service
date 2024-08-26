@@ -69,6 +69,9 @@ func (s *WorkflowService) CreateWorkflow(workflow *models.Workflow) (created boo
 		if !exist && created {
 			return created, exist
 		}
+    if exist {
+      return false, true
+    }
 
 		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
 		log.Printf("WARNING | Failed to create workflow, attempt %d:. Retrying in %v", i, waitTime)

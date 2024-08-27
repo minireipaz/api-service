@@ -157,3 +157,5 @@ dist-ssr
 data/.tinyb
 
 localcerts
+data/tinybird/.tinyb
+data/tinybird/.tinyenv

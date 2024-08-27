@@ -26,9 +26,9 @@ SQL >
     %
     SELECT
         count(DISTINCT w.id) AS total_workflows,
-        countIf(e.status = 1) AS successful_workflows, -- completed
+        countIf(e.status = 2) AS successful_workflows, -- completed
         countIf(e.status = 4) AS failed_workflows, -- failed
-        countIf(e.status IN (2, 3)) AS pending_workflows -- pending, processing
+        countIf(e.status IN (1, 3)) AS pending_workflows -- pending, processing
     FROM workflows w
     LEFT JOIN executions e ON w.id = e.workflow_id
     WHERE w.user_id = {{user_id}}

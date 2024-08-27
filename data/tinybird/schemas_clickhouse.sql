@@ -193,7 +193,7 @@ CREATE TABLE workflows
     updated_at DateTime,
     workflow_init DateTime,
     workflow_completed DateTime,
-    status UInt8 DEFAULT 1 -- Enum8('completed' = 1, 'pending' = 2, 'processing' = 3, 'failed' = 4) DEFAULT 'processing'
+    status UInt8 DEFAULT 1 -- Enum8('pending' = 1, 'completed' = 2, 'processing' = 3, 'failed' = 4) DEFAULT 'processing'
 )
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(created_at)

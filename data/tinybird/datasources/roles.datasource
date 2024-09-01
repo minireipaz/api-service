@@ -1,8 +1,0 @@
-DATASOURCE roles
-ENGINE "MergeTree"
-ENGINE_SORTING_KEY "id"
-
-SCHEMA >
-    `id` String,
-    `name` String,
-    `created_at` DateTime

@@ -9,7 +9,7 @@ import (
 
 func ValidateWorkflow() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var workflow models.Workflow
+		var workflow models.WorkflowFrontend
 		if err := c.ShouldBindJSON(&workflow); err != nil {
 			c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
 			c.Abort()
@@ -28,7 +28,7 @@ func ValidateWorkflow() gin.HandlerFunc {
 			return
 		}
 
-		if !validateUUID(workflow.UUID.String(), c) {
+		if !validateUUID(workflow.UUID, c) {
 			return
 		}
 

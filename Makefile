@@ -3,9 +3,6 @@
 include .env
 export
 
-force_upload_datasources_with_fixtures:
-	@./data/tinybird/scripts/force_upload_datasources_with_fixtures.sh
-
 openapi_http:
 	@echo "Generating OpenAPI documentation..."
 	@./scripts/openapi-http.sh

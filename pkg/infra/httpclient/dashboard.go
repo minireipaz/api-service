@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"minireipaz/pkg/config"
 	"minireipaz/pkg/domain/models"
 	"net/http"
@@ -24,10 +25,10 @@ func NewDashboardRepository(client HTTPClient, clickhouseConfig config.Clickhous
 	}
 }
 
-func (d *DashboardRepository) GetWorkflowData(userID string) (*models.InfoDashboard, error) {
+func (d *DashboardRepository) GetWorkflowData(userID string) (models.InfoDashboard, error) {
 	u, err := url.Parse(d.databaseHTTPURL + "/user_workflow_stats.json")
 	if err != nil {
-		return nil, err
+		return models.InfoDashboard{}, err
 	}
 
 	q := u.Query()
@@ -37,26 +38,33 @@ func (d *DashboardRepository) GetWorkflowData(userID string) (*models.InfoDashbo
 
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return nil, err
+		return models.InfoDashboard{}, err
 	}
 
 	// d.setHeaders(req, d.token)
 
 	resp, err := d.client.Do(req)
 	if err != nil {
-		return nil, err
+		return models.InfoDashboard{}, err
 	}
 	defer resp.Body.Close()
-
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	// log.Printf("%v", string(bodyBytes))
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("ERROR | response: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		return models.InfoDashboard{}, fmt.Errorf("ERROR | response: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var result models.InfoDashboard
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("ERROR | cannot decode token: %v", err)
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+		log.Printf("ERROR | cannot decode body: %s %v", string(bodyBytes), err)
+		return models.InfoDashboard{}, fmt.Errorf("ERROR | cannot decode token: %v", err)
 	}
+	// if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	//   bodyBytes, _ := io.ReadAll(resp.Body)
+	//   log.Printf("ERROR | cannot decode body: %s %v", string(bodyBytes), err)
+	// 	return models.InfoDashboard{}, fmt.Errorf("ERROR | cannot decode token: %v", err)
+	// }
 
-	return &result, nil
+	return result, nil
 }

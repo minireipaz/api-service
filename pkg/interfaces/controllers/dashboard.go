@@ -26,7 +26,7 @@ func (d *DashboardController) GetUserDashboardByID(ctx *gin.Context) {
 	id := ctx.Param("iduser")
 	dashboardInfo, err := d.service.QueryDashboardInfo(id)
 	resp := models.ResponseInfoDashboard{
-		Data:   *dashboardInfo,
+		Data:   dashboardInfo.Data,
 		Status: http.StatusOK,
 		Error:  "",
 	}

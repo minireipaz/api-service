@@ -16,6 +16,11 @@ type RedisClient struct {
 	Ctx    context.Context
 }
 
+const (
+	operationSET    = "set"
+	operationREMOVE = "remove"
+)
+
 func NewRedisClient() *RedisClient {
 	opt, err := redis.ParseURL(config.GetEnv("REDIS_URI", ""))
 	if err != nil {
@@ -76,13 +81,13 @@ func (r *RedisClient) WatchWorkflow(workflow *models.Workflow, operation string)
 }
 
 func (r *RedisClient) CheckAndModifyWorkflow(ctx context.Context, tx *redis.Tx, workflow *models.Workflow, operation string) error {
-	uuidExists, err := tx.HExists(ctx, "workflows:all", workflow.UUID.String()).Result()
+	uuidExists, err := tx.HExists(ctx, "workflows:all", workflow.UUID).Result()
 	if err != nil {
 		log.Printf("ERROR | checking UUID existence: %v", err)
 		return fmt.Errorf(models.UUIDCannotGenerate)
 	}
 
-	// not necesary
+	// not necessary
 	// nameExists, err := tx.HExists(ctx, fmt.Sprintf("users:%s", workflow.Sub), workflow.WorkflowName).Result()
 	// if err != nil {
 	// 	log.Printf("ERROR | checking workflow name existence: %v", err)
@@ -90,7 +95,7 @@ func (r *RedisClient) CheckAndModifyWorkflow(ctx context.Context, tx *redis.Tx, 
 	// }
 
 	switch operation {
-	case "set":
+	case operationSET:
 		if uuidExists {
 			return fmt.Errorf(models.UUIDExist)
 		}
@@ -98,7 +103,7 @@ func (r *RedisClient) CheckAndModifyWorkflow(ctx context.Context, tx *redis.Tx, 
 		// 	return fmt.Errorf(models.WorkflowNameExist)
 		// }
 		return r.setWorkflow(ctx, tx, workflow)
-	case "remove":
+	case operationREMOVE:
 		// if !uuidExists {
 		// 	return fmt.Errorf(models.UUIDNotExist)
 		// }
@@ -113,8 +118,8 @@ func (r *RedisClient) CheckAndModifyWorkflow(ctx context.Context, tx *redis.Tx, 
 
 func (r *RedisClient) setWorkflow(ctx context.Context, tx *redis.Tx, workflow *models.Workflow) error {
 	_, err := tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
-		pipe.HSet(ctx, fmt.Sprintf("users:%s", workflow.Sub), workflow.WorkflowName, workflow.UUID.String())
-		pipe.HSet(ctx, "workflows:all", workflow.UUID.String(), workflow.Sub)
+		pipe.HSet(ctx, fmt.Sprintf("users:%s", workflow.UserID), workflow.Name, workflow.UUID)
+		pipe.HSet(ctx, "workflows:all", workflow.UUID, workflow.UserID)
 		return nil
 	})
 	return err
@@ -122,19 +127,19 @@ func (r *RedisClient) setWorkflow(ctx context.Context, tx *redis.Tx, workflow *m
 
 func (r *RedisClient) removeWorkflow(ctx context.Context, tx *redis.Tx, workflow *models.Workflow) error {
 	_, err := tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
-		pipe.HDel(ctx, fmt.Sprintf("users:%s", workflow.Sub), workflow.WorkflowName)
-		pipe.HDel(ctx, "workflows:all", workflow.UUID.String())
+		pipe.HDel(ctx, fmt.Sprintf("users:%s", workflow.UserID), workflow.Name)
+		pipe.HDel(ctx, "workflows:all", workflow.UUID)
 		return nil
 	})
 	return err
 }
 
 func (r *RedisClient) SetWorkflow(workflow *models.Workflow) error {
-	return r.WatchWorkflow(workflow, "set")
+	return r.WatchWorkflow(workflow, operationSET)
 }
 
 func (r *RedisClient) RemoveWorkflow(workflow *models.Workflow) error {
-	return r.WatchWorkflow(workflow, "remove")
+	return r.WatchWorkflow(workflow, operationREMOVE)
 }
 
 func (r *RedisClient) WatchUser(user *models.SyncUserRequest, lockKey, userKey string, duration time.Duration) (inserted bool, lockExists bool, userExists bool, err error) {

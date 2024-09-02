@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type TypeErrors int64
@@ -23,36 +21,69 @@ const (
 	WorkflowDateInvalid           = "Invalid date"
 )
 
+type WorkflowFrontend struct {
+	Sub             string `json:"sub,omitempty"`
+	UUID            string `json:"uuid,omitempty"`
+	WorkflowName    string `json:"workflowname" binding:"required,alphanum,max=255"`
+	Description     string `json:"description"`
+	DirectoryToSave string `json:"directorytosave" binding:"required,alphanum,max=255"`
+	CreatedAt       string `json:"createdat,omitempty"`
+	UpdatedAt       string `json:"updatedat,omitempty"`
+}
+
+type IsActive uint8
+
+const (
+	Active IsActive = iota + 1 // Active = 1
+	Draft                      // Draft = 2
+	Paused                     // Paused = 3
+)
+
+type Status uint8
+
+const (
+	Pending    Status = iota + 1 // Pending = 1
+	Completed                    // Completed = 2
+	Processing                   // Processing = 3
+	Failed                       // Failed = 4
+)
+
 type Workflow struct {
-	Sub             string    `json:"sub,omitempty"`
-	UUID            uuid.UUID `json:"uuid,omitempty"`
-	WorkflowName    string    `json:"workflowname" binding:"required,alphanum,max=255"`
-	DirectoryToSave string    `json:"directorytosave" binding:"required,alphanum,max=255"`
-	CreatedAt       string    `json:"createdat,omitempty"`
-	UpdatedAt       string    `json:"updatedat,omitempty"`
+	UUID              string    `json:"id,omitempty"`
+	UserID            string    `json:"user_id,omitempty"`
+	Name              string    `json:"name,omitempty"`
+	Description       string    `json:"description,omitempty"`
+	IsActive          IsActive  `json:"is_active,omitempty"` // Enum8('active' = 1, 'draft' = 2, 'paused' = 3) DEFAULT 'active'
+	CreatedAt         string    `json:"created_at,omitempty"`
+	UpdatedAt         string    `json:"updated_at,omitempty"`
+	WorkflowInit      time.Time `json:"workflow_init,omitempty"`
+	WorkflowCompleted time.Time `json:"workflow_completed,omitempty"`
+	Status            Status    `json:"status,omitempty"` // Enum8('pending' = 1, 'completed' = 2, 'processing' = 3, 'failed' = 4) DEFAULT 'pending'
+	DirectoryToSave   string    `json:"directory_to_save"`
 }
 
 type WorkflowDetail struct {
-	WorkflowID          string     `json:"workflow_id"`
-	WorkflowName        string     `json:"workflow_name"`
-	WorkflowDescription *string    `json:"workflow_description,omitempty"`
-	WorkflowStatus      *int       `json:"workflow_status,omitempty"`
-	ExecutionStatus     *int       `json:"execution_status,omitempty"`
-	StartTime           *time.Time `json:"start_time,omitempty"`
-	Duration            *int       `json:"duration,omitempty"`
+	WorkflowID          string      `json:"workflow_id"`
+	WorkflowName        string      `json:"workflow_name"`
+	WorkflowDescription *string     `json:"workflow_description,omitempty"`
+	WorkflowStatus      *int        `json:"workflow_status,omitempty"`
+	ExecutionStatus     *int        `json:"execution_status,omitempty"`
+	StartTime           *CustomTime `json:"start_time,omitempty"`
+	Duration            *int        `json:"duration,omitempty"`
 }
 
-type WorkflowCounts struct {
-	TotalWorkflows      int `json:"total_workflows"`
-	SuccessfulWorkflows int `json:"successful_workflows"`
-	FailedWorkflows     int `json:"failed_workflows"`
-	PendingWorkflows    int `json:"pending_workflows"`
+type WorkflowsCount struct {
+	TotalWorkflows      *int64 `json:"total_workflows,omitempty"`
+	SuccessfulWorkflows *int64 `json:"successful_workflows,omitempty"`
+	FailedWorkflows     *int64 `json:"failed_workflows,omitempty"`
+	PendingWorkflows    *int64 `json:"pending_workflows,omitempty"`
+	// RecentWorkflow      []RecentWorkflow
 }
 
 type RecentWorkflow struct {
-	WorkflowName        string     `json:"workflow_name"`
-	WorkflowDescription *string    `json:"workflow_description,omitempty"`
-	ExecutionStatus     *int       `json:"execution_status,omitempty"`
-	StartTime           *time.Time `json:"start_time,omitempty"`
-	Duration            *int       `json:"duration,omitempty"`
+	WorkflowName        string       `json:"workflow_name"`
+	WorkflowDescription *string      `json:"workflow_description,omitempty"`
+	ExecutionStatus     *int         `json:"execution_status,omitempty"`
+	StartTime           *CustomTime  `json:"start_time,omitempty"`
+	Duration            *interface{} `json:"duration,omitempty"`
 }

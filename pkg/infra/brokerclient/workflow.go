@@ -36,7 +36,7 @@ func (w *WorkflowKafkaRepository) Create(workflow *models.Workflow) (sended bool
 		Workflow:  workflow,
 		Timestamp: time.Now(),
 	}
-	sended = w.PublishCommand(command, workflow.UUID.String())
+	sended = w.PublishCommand(command, workflow.UUID)
 	return sended
 }
 

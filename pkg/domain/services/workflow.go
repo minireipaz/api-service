@@ -24,8 +24,12 @@ func NewWorkflowService(repoRedis repos.WorkflowRedisRepoInterface, repoBroker r
 
 func (s *WorkflowService) retriesWorkflow(workflow *models.Workflow) (bool, bool) {
 	workflow.UUID = s.idGenerator.GenerateWorkflowID()
+	existWorkflowUUID := s.ValidateUUID(workflow)
+	if existWorkflowUUID {
+		return false, true
+	}
 
-	lockKey := "lock:" + workflow.UUID.String()
+	lockKey := "lock:" + workflow.UUID
 	acquired, err := s.redisRepo.AcquireLock(lockKey, "", 30*time.Second)
 	if err != nil {
 		log.Printf("ERROR | acquiring lock: %v", err)
@@ -40,11 +44,10 @@ func (s *WorkflowService) retriesWorkflow(workflow *models.Workflow) (bool, bool
 
 	workflow.CreatedAt = time.Now().Format(models.LayoutTimestamp) // right now not controlled by db
 	workflow.UpdatedAt = workflow.CreatedAt                        // right now not controlled by db
-
-	existWorkflowUUID := s.ValidateUUID(workflow)
-	if existWorkflowUUID {
-		return false, true
-	}
+	workflow.IsActive = models.Active                              // right now not controlled by db
+	workflow.Status = models.Pending                               // right now not controlled by db
+	workflow.WorkflowInit = time.Time{}
+	workflow.WorkflowCompleted = time.Time{}
 
 	createdRedis, existRedis := s.redisRepo.Create(workflow)
 	if existRedis {
@@ -63,15 +66,16 @@ func (s *WorkflowService) retriesWorkflow(workflow *models.Workflow) (bool, bool
 	return createdRedis, existRedis
 }
 
-func (s *WorkflowService) CreateWorkflow(workflow *models.Workflow) (created bool, exist bool) {
+func (s *WorkflowService) CreateWorkflow(workflowFrontend *models.WorkflowFrontend) (created bool, exist bool) {
+	workflow := s.fromWorkflowFrontendToBackend(workflowFrontend)
 	for i := 1; i < models.MaxAttempts; i++ {
 		created, exist = s.retriesWorkflow(workflow)
 		if !exist && created {
 			return created, exist
 		}
-    if exist {
-      return false, true
-    }
+		if exist {
+			return false, true
+		}
 
 		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
 		log.Printf("WARNING | Failed to create workflow, attempt %d:. Retrying in %v", i, waitTime)
@@ -80,6 +84,15 @@ func (s *WorkflowService) CreateWorkflow(workflow *models.Workflow) (created boo
 	log.Print("ERROR | Needs to add to Dead Letter. Cannot create workflow")
 	// TODO: dead letter
 	return false, false
+}
+
+func (s *WorkflowService) fromWorkflowFrontendToBackend(fw *models.WorkflowFrontend) *models.Workflow {
+	return &models.Workflow{
+		Name:            fw.WorkflowName,
+		Description:     fw.Description,
+		DirectoryToSave: fw.DirectoryToSave,
+		UserID:          fw.Sub,
+	}
 }
 
 func (s *WorkflowService) ValidateUUID(workflow *models.Workflow) bool {

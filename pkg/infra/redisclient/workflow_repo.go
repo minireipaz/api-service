@@ -34,12 +34,12 @@ func (r *WorkflowRepository) Remove(workflow *models.Workflow) bool {
 }
 
 func (r *WorkflowRepository) ValidateUUID(workflow *models.Workflow) bool {
-	exist := r.redisClient.Hexists("workflows:all", workflow.UUID.String())
+	exist := r.redisClient.Hexists("workflows:all", workflow.UUID)
 	return exist
 }
 
 func (r *WorkflowRepository) ValidateWorkflowName(workflow *models.Workflow) bool {
-	exist := r.redisClient.Hexists(fmt.Sprintf("users:%s", workflow.Sub), workflow.WorkflowName)
+	exist := r.redisClient.Hexists(fmt.Sprintf("users:%s", workflow.UserID), workflow.Name)
 	return exist
 }
 

@@ -15,7 +15,7 @@ func LoadEnvs(baseDir string) {
 		if err := loadEnvFile(envPath); err != nil {
 			localEnvPath := filepath.Join(baseDir, ".env.local")
 			if err := loadEnvFile(localEnvPath); err != nil {
-				log.Panic("ERROR | Initial LoadEnvs FAILED")
+				log.Printf("ERROR | Initial LoadEnvs FAILED")
 			}
 		}
 	}

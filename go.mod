@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	github.com/confluentinc/confluent-kafka-go/v2 v2.5.0
+	github.com/confluentinc/confluent-kafka-go/v2 v2.5.3
 	github.com/stretchr/objx v0.5.2 // indirect
 )
 

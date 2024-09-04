@@ -22,9 +22,9 @@ const (
 )
 
 func NewRedisClient() *RedisClient {
-	opt, err := redis.ParseURL(config.GetEnv("REDIS_URI", ""))
+	opt, err := redis.ParseURL(config.GetEnv("VAULT_URI", ""))
 	if err != nil {
-		log.Panicf("ERROR | Not connected to Redis")
+		log.Panicf("ERROR | Not connected to Redis. Cannot parse Redis URI %s", config.GetEnv("VAULT_URI", ""))
 	}
 
 	rdb := redis.NewClient(opt)
@@ -33,7 +33,7 @@ func NewRedisClient() *RedisClient {
 	defer cancel()
 
 	if rdb.Ping(context.Background()).Val() != "PONG" {
-		log.Panicf("ERROR | Not connected to Redis")
+		log.Panicf("ERROR | Server Redis not pong")
 	}
 
 	return &RedisClient{

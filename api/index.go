@@ -40,7 +40,7 @@ func InitApp() {
 	}()
 
 	// Initialize Gin app
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 	app = gin.New()
 
 	// Dependency injection and routes setup
@@ -64,7 +64,7 @@ func Dummy() {
 }
 
 func RunWebserver() {
-	addr := config.GetEnv("FRONTEND_ADDR", ":3020")
+	addr := config.GetEnv("BACKEND_ADDR", ":4020")
 	err := app.Run(addr)
 	if err != nil {
 		log.Panicf("ERROR | Starting gin failed, %v", err)

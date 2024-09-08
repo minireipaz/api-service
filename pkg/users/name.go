@@ -6,6 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func HandleUsers(c *gin.Context) {
-	c.String(http.StatusOK, "User: %v", c.Param("name"))
+func HandleUsers(ctx *gin.Context) {
+	ctx.String(http.StatusOK, "User: %v", ctx.Param("name"))
 }

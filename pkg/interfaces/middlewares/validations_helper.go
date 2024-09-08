@@ -8,76 +8,76 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func validateSub(sub string, c *gin.Context) bool {
+func validateSub(sub string, ctx *gin.Context) bool {
 	if strings.TrimSpace(sub) == "" || len(sub) > 50 {
-		c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserSubMustBe))
-		c.Abort()
+		ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserSubMustBe))
+		ctx.Abort()
 		return false
 	}
 	return true
 }
 
-func validateWorkflowName(name string, c *gin.Context) bool {
+func validateWorkflowName(name string, ctx *gin.Context) bool {
 	if strings.TrimSpace(name) == "" || len(name) > 255 {
-		c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.WorkflowNameInvalid))
-		c.Abort()
+		ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.WorkflowNameInvalid))
+		ctx.Abort()
 		return false
 	}
 	return true
 }
 
-func validateDirectoryToSave(directory string, c *gin.Context) bool {
+func validateDirectoryToSave(directory string, ctx *gin.Context) bool {
 	if strings.TrimSpace(directory) == "" || len(directory) > 255 {
-		c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.WorkflowDirectoryInvalid))
-		c.Abort()
+		ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.WorkflowDirectoryInvalid))
+		ctx.Abort()
 		return false
 	}
 	return true
 }
 
-func validateUUID(uuid string, c *gin.Context) bool {
+func validateUUID(uuid string, ctx *gin.Context) bool {
 	if uuid == "" {
-		c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UUIDInvalid))
-		c.Abort()
+		ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UUIDInvalid))
+		ctx.Abort()
 		return false
 	}
 	return true
 }
 
-func validateDates(createdAt, updatedAt string, c *gin.Context) bool {
+func validateDates(createdAt, updatedAt string, ctx *gin.Context) bool {
 	if (createdAt != "" && len(createdAt) > 30) || (updatedAt != "" && len(updatedAt) > 30) {
-		c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.WorkflowDateInvalid))
-		c.Abort()
+		ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.WorkflowDateInvalid))
+		ctx.Abort()
 		return false
 	}
 	return true
 }
 
-func validateAccessToken(token string, c *gin.Context) bool {
+func validateAccessToken(token string, ctx *gin.Context) bool {
 	if token != "" && (len(token) > 1000 || len(token) < 100) {
-		c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserAccessTokenInvalid))
-		c.Abort()
+		ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserAccessTokenInvalid))
+		ctx.Abort()
 		return false
 	}
 	return true
 }
 
-func validateUserStatus(status models.UserStatus, c *gin.Context) bool {
+func validateUserStatus(status models.UserStatus, ctx *gin.Context) bool {
 	if status != 0 {
 		if _, err := models.UserStatusFromUint8(uint8(status)); err != nil {
-			c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserInvalidStatus))
-			c.Abort()
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserInvalidStatus))
+			ctx.Abort()
 			return false
 		}
 	}
 	return true
 }
 
-func validateUserRole(roleID models.UserRoleID, c *gin.Context) bool {
+func validateUserRole(roleID models.UserRoleID, ctx *gin.Context) bool {
 	if roleID != 0 {
 		if roleID < models.RoleAdmin || roleID > models.RoleDeveloper {
-			c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserInvalidRole))
-			c.Abort()
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UserInvalidRole))
+			ctx.Abort()
 			return false
 		}
 	}

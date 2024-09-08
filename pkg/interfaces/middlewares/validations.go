@@ -8,77 +8,77 @@ import (
 )
 
 func ValidateWorkflow() gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(ctx *gin.Context) {
 		var workflow models.WorkflowFrontend
-		if err := c.ShouldBindJSON(&workflow); err != nil {
-			c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
-			c.Abort()
+		if err := ctx.ShouldBindJSON(&workflow); err != nil {
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
+			ctx.Abort()
 			return
 		}
 
-		if !validateSub(workflow.Sub, c) {
+		if !validateSub(workflow.Sub, ctx) {
 			return
 		}
 
-		if !validateWorkflowName(workflow.WorkflowName, c) {
+		if !validateWorkflowName(workflow.WorkflowName, ctx) {
 			return
 		}
 
-		if !validateDirectoryToSave(workflow.DirectoryToSave, c) {
+		if !validateDirectoryToSave(workflow.DirectoryToSave, ctx) {
 			return
 		}
 
-		if !validateUUID(workflow.UUID, c) {
+		if !validateUUID(workflow.UUID, ctx) {
 			return
 		}
 
-		if !validateDates(workflow.CreatedAt, workflow.UpdatedAt, c) {
+		if !validateDates(workflow.CreatedAt, workflow.UpdatedAt, ctx) {
 			return
 		}
 
-		c.Set("workflow", workflow)
-		c.Next()
+		ctx.Set("workflow", workflow)
+		ctx.Next()
 	}
 }
 
 func ValidateUser() gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(ctx *gin.Context) {
 		var currentUser models.SyncUserRequest
-		if err := c.ShouldBindJSON(&currentUser); err != nil {
-			c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
-			c.Abort()
+		if err := ctx.ShouldBindJSON(&currentUser); err != nil {
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
+			ctx.Abort()
 			return
 		}
 
-		if !validateSub(currentUser.Sub, c) {
+		if !validateSub(currentUser.Sub, ctx) {
 			return
 		}
 
-		if !validateAccessToken(currentUser.AccessToken, c) {
+		if !validateAccessToken(currentUser.AccessToken, ctx) {
 			return
 		}
 
-		if !validateUserStatus(currentUser.Status, c) {
+		if !validateUserStatus(currentUser.Status, ctx) {
 			return
 		}
 
-		if !validateUserRole(currentUser.RoleID, c) {
+		if !validateUserRole(currentUser.RoleID, ctx) {
 			return
 		}
 
-		c.Set("user", currentUser)
-		c.Next()
+		ctx.Set("user", currentUser)
+		ctx.Next()
 	}
 }
 
 func ValidateUserAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(ctx *gin.Context) {
 		// var currentUser models.SyncUserRequest
 		// if err := c.ShouldBindJSON(&currentUser); err != nil {
 		// 	c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
 		// 	c.Abort()
 		// 	return
 		// }
-		c.Next()
+		ctx.Next()
 	}
 }

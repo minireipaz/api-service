@@ -41,8 +41,8 @@ func Register(app *gin.Engine, workflowController *controllers.WorkflowControlle
 	}
 }
 
-func ErrRouter(c *gin.Context) {
-	c.JSON(http.StatusNotFound, gin.H{
+func ErrRouter(ctx *gin.Context) {
+	ctx.JSON(http.StatusNotFound, gin.H{
 		"error": "Page not found",
 	})
 }

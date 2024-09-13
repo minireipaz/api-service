@@ -19,7 +19,7 @@ func NewWorkflowController(newWorkflowService *services.WorkflowService, newAuth
 
 func (c *WorkflowController) CreateWorkflow(ctx *gin.Context) {
 	workflowFrontend := ctx.MustGet("workflow").(models.WorkflowFrontend)
-	created, exist := c.workflowService.CreateWorkflow(&workflowFrontend)
+	created, exist, workflow := c.workflowService.CreateWorkflow(&workflowFrontend)
 	if !created && !exist {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":    models.WorkflowNameNotGenerate,
@@ -40,7 +40,7 @@ func (c *WorkflowController) CreateWorkflow(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"error":    "",
-		"workflow": workflowFrontend,
+		"workflow": workflow,
 		"status":   http.StatusCreated,
 	})
 }

@@ -15,7 +15,7 @@ func Register(app *gin.Engine, authService *services.AuthService) {
 	// allowedOriginsEnv := config.GetEnv("CORS_ALLOWED_ORIGINS", "http://localhost:3020,http://localhost:3010")
 	// allowedOrigins := strings.Split(allowedOriginsEnv, ",")
 	app.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true,
+		AllowAllOrigins: true,
 		// AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"POST", "GET", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},

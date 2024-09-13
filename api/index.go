@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
 	"log"
 	"minireipaz/pkg/config"
 	"minireipaz/pkg/di"
@@ -10,6 +9,8 @@ import (
 	"minireipaz/pkg/interfaces/middlewares"
 	"minireipaz/pkg/interfaces/routes"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (

@@ -91,7 +91,8 @@ func (z *ZitadelClient) ValidateUserToken(userToken, jwtToken string) (bool, err
 
 	var result models.VerifyTokenUser
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return false, fmt.Errorf("ERROR | cannot decode token: %v", err)
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return false, fmt.Errorf("ERROR | cannot decode token: %v body msg: %s", err, string(bodyBytes))
 	}
 
 	return result.Active, nil

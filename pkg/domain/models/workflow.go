@@ -23,12 +23,12 @@ const (
 
 type WorkflowFrontend struct {
 	Sub             string `json:"sub,omitempty"`
-	UUID            string `json:"uuid,omitempty"`
-	WorkflowName    string `json:"workflowname" binding:"required,alphanum,max=255"`
-	Description     string `json:"description"`
-	DirectoryToSave string `json:"directorytosave" binding:"required,alphanum,max=255"`
-	CreatedAt       string `json:"createdat,omitempty"`
-	UpdatedAt       string `json:"updatedat,omitempty"`
+	UUID            string `json:"id,omitempty"`
+	WorkflowName    string `json:"name" binding:"required,alphanum,max=255"`
+	Description     string `json:"description,omitempty"`
+	DirectoryToSave string `json:"directory_to_save" binding:"required,alphanum,max=255"`
+	CreatedAt       string `json:"created_at,omitempty"`
+	UpdatedAt       string `json:"updated_at,omitempty"`
 }
 
 type IsActive uint8

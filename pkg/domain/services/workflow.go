@@ -66,15 +66,15 @@ func (s *WorkflowService) retriesWorkflow(workflow *models.Workflow) (bool, bool
 	return createdRedis, existRedis
 }
 
-func (s *WorkflowService) CreateWorkflow(workflowFrontend *models.WorkflowFrontend) (created bool, exist bool) {
-	workflow := s.fromWorkflowFrontendToBackend(workflowFrontend)
+func (s *WorkflowService) CreateWorkflow(workflowFrontend *models.WorkflowFrontend) (created bool, exist bool, workflow *models.Workflow) {
+	workflow = s.fromWorkflowFrontendToBackend(workflowFrontend)
 	for i := 1; i < models.MaxAttempts; i++ {
 		created, exist = s.retriesWorkflow(workflow)
 		if !exist && created {
-			return created, exist
+			return created, exist, workflow
 		}
 		if exist {
-			return false, true
+			return false, true, workflow
 		}
 
 		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
@@ -83,7 +83,7 @@ func (s *WorkflowService) CreateWorkflow(workflowFrontend *models.WorkflowFronte
 	}
 	log.Print("ERROR | Needs to add to Dead Letter. Cannot create workflow")
 	// TODO: dead letter
-	return false, false
+	return false, false, workflow
 }
 
 func (s *WorkflowService) fromWorkflowFrontendToBackend(fw *models.WorkflowFrontend) *models.Workflow {

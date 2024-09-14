@@ -42,10 +42,11 @@ const (
 type Status uint8
 
 const (
-	Pending    Status = iota + 1 // Pending = 1
-	Completed                    // Completed = 2
-	Processing                   // Processing = 3
-	Failed                       // Failed = 4
+	Initial    Status = iota + 1 // Initial = 1
+	Pending                      // Pending = 2
+	Completed                    // Completed = 3
+	Processing                   // Processing = 4
+	Failed                       // Failed = 5
 )
 
 type Workflow struct {
@@ -58,7 +59,7 @@ type Workflow struct {
 	UpdatedAt         string    `json:"updated_at,omitempty"`
 	WorkflowInit      time.Time `json:"workflow_init,omitempty"`
 	WorkflowCompleted time.Time `json:"workflow_completed,omitempty"`
-	Status            Status    `json:"status,omitempty"` // Enum8('pending' = 1, 'completed' = 2, 'processing' = 3, 'failed' = 4) DEFAULT 'pending'
+	Status            Status    `json:"status,omitempty"` // Enum8('initial' = 1, 'pending' = 2, 'completed' = 3, 'processing' = 4, 'failed' = 5) DEFAULT 'initial'
 	DirectoryToSave   string    `json:"directory_to_save"`
 }
 

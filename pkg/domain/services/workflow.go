@@ -45,7 +45,7 @@ func (s *WorkflowService) retriesWorkflow(workflow *models.Workflow) (bool, bool
 	workflow.CreatedAt = time.Now().Format(models.LayoutTimestamp) // right now not controlled by db
 	workflow.UpdatedAt = workflow.CreatedAt                        // right now not controlled by db
 	workflow.IsActive = models.Active                              // right now not controlled by db
-	workflow.Status = models.Pending                               // right now not controlled by db
+	workflow.Status = models.Initial                               // right now not controlled by db
 	workflow.WorkflowInit = time.Time{}
 	workflow.WorkflowCompleted = time.Time{}
 

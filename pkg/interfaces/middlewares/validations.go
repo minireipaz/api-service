@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ValidateWorkflow() gin.HandlerFunc {
+func ValidateOnCreateWorkflow() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var workflow models.WorkflowFrontend
 		if err := ctx.ShouldBindJSON(&workflow); err != nil {
@@ -28,9 +28,9 @@ func ValidateWorkflow() gin.HandlerFunc {
 			return
 		}
 
-		if !validateUUID(workflow.UUID, ctx) {
-			return
-		}
+		// if !validateUUID(workflow.UUID, ctx) {
+		// 	return
+		// }
 
 		if !validateDates(workflow.CreatedAt, workflow.UpdatedAt, ctx) {
 			return

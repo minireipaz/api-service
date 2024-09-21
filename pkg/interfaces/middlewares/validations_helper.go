@@ -36,7 +36,7 @@ func validateDirectoryToSave(directory string, ctx *gin.Context) bool {
 }
 
 func validateUUID(uuid string, ctx *gin.Context) bool {
-	if uuid == "" {
+	if strings.TrimSpace(uuid) == " "  { // init validation, right now cannot 
 		ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.UUIDInvalid))
 		ctx.Abort()
 		return false

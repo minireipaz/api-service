@@ -49,7 +49,6 @@ func (d *DashboardRepository) GetWorkflowData(userID string) (models.InfoDashboa
 	}
 	defer resp.Body.Close()
 	bodyBytes, _ := io.ReadAll(resp.Body)
-	// log.Printf("%v", string(bodyBytes))
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return models.InfoDashboard{}, fmt.Errorf("ERROR | response: %d, body: %s", resp.StatusCode, string(bodyBytes))

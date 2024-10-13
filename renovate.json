@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "languageSettings": [
+    {
+      "language": "golang",
+      "enabled": true,
+      "fileMatch": [
+        "^go\\.mod$",
+        "^go\\.sum$"
+      ],
+      "packageRules": [
+        {
+          "managers": [
+            "gomod"
+          ],
+          "groupName": "Go dependencies",
+          "schedule": [
+            "at any time"
+          ]
+        }
+      ]
+    }
+  ],
+  "dependencyDashboard": true,
+  "timezone": "UTC",
+  "schedule": [
+    "before 3am on Monday"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "automerge": false
+}

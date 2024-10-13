@@ -44,3 +44,50 @@ func (c *WorkflowController) CreateWorkflow(ctx *gin.Context) {
 		"status":   http.StatusCreated,
 	})
 }
+
+func (c *WorkflowController) GetWorkflow(ctx *gin.Context) {
+	userID := ctx.Param("iduser")
+	workflowID := ctx.Param("idworkflow")
+
+	newWorkflow, exist := c.workflowService.GetWorkflow(&userID, &workflowID)
+
+	if !exist {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error":  models.UUIDInvalid,
+			"status": http.StatusNotFound,
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"error":    "",
+		"status":   http.StatusOK,
+		"workflow": newWorkflow,
+	})
+}
+
+func (c *WorkflowController) UpdateWorkflow(ctx *gin.Context) {
+	workflowFrontend := ctx.MustGet("workflow").(models.Workflow)
+	updated, exist := c.workflowService.UpdateWorkflow(&workflowFrontend)
+
+	if !exist {
+		ctx.JSON(http.StatusAlreadyReported, gin.H{
+			"error":  models.WorkflowNameExist,
+			"status": http.StatusNotFound,
+		})
+		return
+	}
+
+	if !updated {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":  models.WorkflowNameNotGenerate,
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"error":  "",
+		"status": http.StatusOK,
+	})
+}

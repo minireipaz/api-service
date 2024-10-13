@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var _ services.UserServiceInterface = (*MockUserService)(nil)
+var _ services.UserService = (MockUserService)(nil)
 
 type MockUserService struct {
 	mock.Mock

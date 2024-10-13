@@ -11,49 +11,50 @@ import (
 	"net/url"
 )
 
-type DashboardRepository struct {
-	client          HTTPClient
+type WorkflowHTTPRepository struct {
 	databaseHTTPURL string
 	token           string
+	client          HTTPClient
 }
 
-func NewDashboardRepository(client HTTPClient, clickhouseConfig config.ClickhouseConfig) *DashboardRepository {
-	return &DashboardRepository{
+func NewWorkflowClientHTTP(client HTTPClient, clickhouseConfig config.ClickhouseConfig) *WorkflowHTTPRepository {
+	return &WorkflowHTTPRepository{
 		client:          client,
 		databaseHTTPURL: clickhouseConfig.GetClickhouseURI(),
 		token:           clickhouseConfig.GetClickhouseToken(),
 	}
 }
 
-func (d *DashboardRepository) GetLastWorkflowData(userID string, limitCount uint64) (models.InfoDashboard, error) {
-	u, err := url.Parse(d.databaseHTTPURL + "/user_workflow_stats.json")
+func (w *WorkflowHTTPRepository) GetWorkflowDataByID(userID, workflowID *string, limitCount uint64) (*models.InfoWorkflow, error) {
+	u, err := url.Parse(w.databaseHTTPURL + "/workflow_data.json")
 	if err != nil {
-		return models.InfoDashboard{}, err
+		return nil, err
 	}
 
 	q := u.Query()
-	q.Set("token", d.token)
-	q.Set("user_id", userID)
+	q.Set("token", w.token)
+	q.Set("workflow_id", *workflowID)
+	q.Set("user_id", *userID)
 	q.Set("limit_count", fmt.Sprintf("%d", limitCount))
 	u.RawQuery = q.Encode()
 
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return models.InfoDashboard{}, err
+		return nil, err
 	}
 
-	resp, err := d.client.Do(req)
+	resp, err := w.client.Do(req)
 	if err != nil {
-		return models.InfoDashboard{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return models.InfoDashboard{}, fmt.Errorf("ERROR | response: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		return nil, fmt.Errorf("ERROR | response: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	var result models.InfoDashboard
+	var result *models.InfoWorkflow
 	// if err := json.Unmarshal(bodyBytes, &result); err != nil {
 	// 	log.Printf("ERROR | cannot decode body: %s %v", string(bodyBytes), err)
 	// 	return models.InfoDashboard{}, fmt.Errorf("ERROR | cannot decode token: %v", err)
@@ -61,7 +62,7 @@ func (d *DashboardRepository) GetLastWorkflowData(userID string, limitCount uint
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		log.Printf("ERROR | cannot decode body: %s %v", string(bodyBytes), err)
-		return models.InfoDashboard{}, fmt.Errorf("ERROR | cannot decode token: %v", err)
+		return nil, fmt.Errorf("ERROR | cannot decode token: %v", err)
 	}
 
 	return result, nil

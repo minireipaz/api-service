@@ -16,7 +16,7 @@ func ValidateOnCreateWorkflow() gin.HandlerFunc {
 			return
 		}
 
-		if !validateSub(workflow.Sub, ctx) {
+		if !validateSub(workflow.UserID, ctx) {
 			return
 		}
 
@@ -31,6 +31,47 @@ func ValidateOnCreateWorkflow() gin.HandlerFunc {
 		// if !validateUUID(workflow.UUID, ctx) {
 		// 	return
 		// }
+
+		if !validateDates(workflow.CreatedAt, workflow.UpdatedAt, ctx) {
+			return
+		}
+
+		ctx.Set("workflow", workflow)
+		ctx.Next()
+	}
+}
+
+func ValidateOnGetWorkflow() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+    // TODO: validations
+    ctx.Next()
+  }
+}
+
+func ValidateOnUpdateWorkflow() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var workflow models.Workflow
+		if err := ctx.ShouldBindJSON(&workflow); err != nil {
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
+			ctx.Abort()
+			return
+		}
+
+		if !validateSub(workflow.UUID, ctx) {
+			return
+		}
+
+		if !validateWorkflowName(workflow.Name, ctx) {
+			return
+		}
+
+		if !validateDirectoryToSave(workflow.DirectoryToSave, ctx) {
+			return
+		}
+
+		if !validateUUID(workflow.UUID, ctx) {
+			return
+		}
 
 		if !validateDates(workflow.CreatedAt, workflow.UpdatedAt, ctx) {
 			return
@@ -73,12 +114,6 @@ func ValidateUser() gin.HandlerFunc {
 
 func ValidateUserAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// var currentUser models.SyncUserRequest
-		// if err := c.ShouldBindJSON(&currentUser); err != nil {
-		// 	c.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
-		// 	c.Abort()
-		// 	return
-		// }
 		ctx.Next()
 	}
 }

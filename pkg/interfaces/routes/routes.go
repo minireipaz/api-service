@@ -20,7 +20,8 @@ func Register(app *gin.Engine, workflowController *controllers.WorkflowControlle
 		workflows := api.Group("/workflows")
 		{
 			workflows.POST("", middlewares.ValidateOnCreateWorkflow(), workflowController.CreateWorkflow)
-			// workflows.GET("/:uuid", workflowController.GetWorkflow)
+			workflows.PUT(":id", middlewares.ValidateOnUpdateWorkflow(), workflowController.UpdateWorkflow)
+			workflows.GET("/:iduser/:idworkflow", middlewares.ValidateOnGetWorkflow(), workflowController.GetWorkflow)
 		}
 
 		users := api.Group("/users")

@@ -3,5 +3,5 @@ package repos
 import "minireipaz/pkg/domain/models"
 
 type DashboardHTTPRepository interface {
-	GetWorkflowData(userID string) (models.InfoDashboard, error)
+	GetLastWorkflowData(userID string, limitCount uint64) (models.InfoDashboard, error)
 }

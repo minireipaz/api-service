@@ -28,18 +28,27 @@ func (r *WorkflowRepository) Create(workflow *models.Workflow) (created bool, ex
 	return true, false
 }
 
+func (r *WorkflowRepository) Update(workflow *models.Workflow) (updated bool, exist bool) {
+	err := r.redisClient.UpdateWorkflow(workflow)
+	if err != nil {
+		return false, true
+	}
+
+	return true, false
+}
+
 func (r *WorkflowRepository) Remove(workflow *models.Workflow) bool {
 	err := r.redisClient.RemoveWorkflow(workflow)
 	return err != nil
 }
 
-func (r *WorkflowRepository) ValidateUUID(workflow *models.Workflow) bool {
-	exist := r.redisClient.Hexists("workflows:all", workflow.UUID)
+func (r *WorkflowRepository) ValidateWorkflowGlobalUUID(uuid *string) bool {
+	exist := r.redisClient.Hexists("workflows:all", *uuid)
 	return exist
 }
 
-func (r *WorkflowRepository) ValidateWorkflowName(workflow *models.Workflow) bool {
-	exist := r.redisClient.Hexists(fmt.Sprintf("users:%s", workflow.UserID), workflow.Name)
+func (r *WorkflowRepository) ValidateUserWorkflowUUID(userID, name *string) bool {
+	exist := r.redisClient.Hexists(fmt.Sprintf("users:%s", *userID), *name)
 	return exist
 }
 

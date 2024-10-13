@@ -17,7 +17,7 @@ func Register(app *gin.Engine, authService *services.AuthService) {
 	app.Use(cors.New(cors.Config{
 		AllowAllOrigins: true,
 		// AllowOrigins:     allowedOrigins,
-		AllowMethods:     []string{"POST", "GET", "OPTIONS"},
+		AllowMethods:     []string{"POST", "PUT", "GET", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
 		AllowCredentials: true,
 	}))

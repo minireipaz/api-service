@@ -19,6 +19,7 @@ type RedisClient struct {
 const (
 	operationSET    = "set"
 	operationREMOVE = "remove"
+	operationUPDATE = "update"
 )
 
 func NewRedisClient() *RedisClient {
@@ -111,6 +112,8 @@ func (r *RedisClient) CheckAndModifyWorkflow(ctx context.Context, tx *redis.Tx, 
 		// 	return fmt.Errorf(models.WorkflowNameNotExist)
 		// }
 		return r.removeWorkflow(ctx, tx, workflow)
+	case operationUPDATE:
+		return r.setWorkflow(ctx, tx, nil)
 	default:
 		return fmt.Errorf("unknown operation: %s", operation)
 	}
@@ -125,6 +128,15 @@ func (r *RedisClient) setWorkflow(ctx context.Context, tx *redis.Tx, workflow *m
 	return err
 }
 
+// func (r *RedisClient) updateWorkflow(ctx context.Context, tx *redis.Tx, workflow *models.Workflow) error {
+// 	_, err := tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+// 		pipe.HSet(ctx, fmt.Sprintf("users:%s", workflow.UserID), workflow.Name, workflow.UUID)
+// 		pipe.HSet(ctx, "workflows:all", workflow.UUID, workflow.UserID)
+// 		return nil
+// 	})
+// 	return err
+// }
+
 func (r *RedisClient) removeWorkflow(ctx context.Context, tx *redis.Tx, workflow *models.Workflow) error {
 	_, err := tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
 		pipe.HDel(ctx, fmt.Sprintf("users:%s", workflow.UserID), workflow.Name)
@@ -136,6 +148,10 @@ func (r *RedisClient) removeWorkflow(ctx context.Context, tx *redis.Tx, workflow
 
 func (r *RedisClient) SetWorkflow(workflow *models.Workflow) error {
 	return r.WatchWorkflow(workflow, operationSET)
+}
+
+func (r *RedisClient) UpdateWorkflow(workflow *models.Workflow) error {
+	return r.WatchWorkflow(workflow, operationUPDATE)
 }
 
 func (r *RedisClient) RemoveWorkflow(workflow *models.Workflow) error {

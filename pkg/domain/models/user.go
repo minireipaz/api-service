@@ -8,7 +8,7 @@ import (
 type SyncUserRequest struct {
 	ID                       string     `json:"id,omitempty"`
 	AccessToken              string     `json:"access_token" binding:"required,max=1000"`
-	Sub                      string     `json:"sub" binding:"required,max=50"`
+	Sub                      string     `json:"user_id" binding:"required,max=50"`
 	Status                   UserStatus `json:"status" binding:"omitempty,oneof=1 2 3 4"`
 	RoleID                   UserRoleID `json:"roleId" binding:"omitempty,oneof=1 2 3 4 5 6 7 8 9 10"`
 	ResetPasswordToken       *string    `json:"resetPasswordToken,omitempty"`

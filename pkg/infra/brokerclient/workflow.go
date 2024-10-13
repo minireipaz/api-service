@@ -13,15 +13,15 @@ type WorkflowKafkaRepository struct {
 }
 
 const (
-	CommandTypeCreate = "CREATE"
-	CommandTypeUpdate = "UPDATE"
-	CommandTypeDelete = "DELETE"
+	CommandTypeCreate = "create"
+	CommandTypeUpdate = "update"
+	CommandTypeDelete = "delete"
 )
 
 type WorkflowCommand struct {
-	Type      string           `json:"type"`
-	Workflow  *models.Workflow `json:"workflow"`
-	Timestamp time.Time        `json:"timestamp"`
+	Type      string                  `json:"type"`
+	Workflow  *models.WorkflowPayload `json:"workflow"`
+	Timestamp time.Time               `json:"timestamp"`
 }
 
 func NewWorkflowKafkaRepository(client KafkaClient) *WorkflowKafkaRepository {
@@ -31,9 +31,29 @@ func NewWorkflowKafkaRepository(client KafkaClient) *WorkflowKafkaRepository {
 }
 
 func (w *WorkflowKafkaRepository) Create(workflow *models.Workflow) (sended bool) {
+	payload, err := w.workflowToPayload(workflow, CommandTypeCreate)
+	if err != nil {
+		log.Printf("ERROR | Cannot convert workflow to payload: %v", err)
+		return false
+	}
 	command := WorkflowCommand{
 		Type:      CommandTypeCreate,
-		Workflow:  workflow,
+		Workflow:  payload,
+		Timestamp: time.Now(),
+	}
+	sended = w.PublishCommand(command, workflow.UUID)
+	return sended
+}
+
+func (w *WorkflowKafkaRepository) Update(workflow *models.Workflow) (sended bool) {
+	payload, err := w.workflowToPayload(workflow, CommandTypeUpdate)
+	if err != nil {
+		log.Printf("ERROR | Cannot convert workflow to payload: %v", err)
+		return false
+	}
+	command := WorkflowCommand{
+		Type:      CommandTypeUpdate,
+		Workflow:  payload,
 		Timestamp: time.Now(),
 	}
 	sended = w.PublishCommand(command, workflow.UUID)
@@ -59,4 +79,51 @@ func (w *WorkflowKafkaRepository) PublishCommand(workflowCommand WorkflowCommand
 	}
 
 	return false
+}
+
+func (w *WorkflowKafkaRepository) workflowToPayload(workflow *models.Workflow, commandType string) (*models.WorkflowPayload, error) {
+	var nodesJSON, edgesJSON, viewportJSON *string
+
+	if workflow.Nodes != nil {
+		nodeBytes, err := json.Marshal(workflow.Nodes)
+		if err != nil {
+			return &models.WorkflowPayload{}, err
+		}
+		nodeStr := string(nodeBytes)
+		nodesJSON = &nodeStr
+	}
+	if workflow.Edges != nil {
+		edgeBytes, err := json.Marshal(workflow.Edges)
+		if err != nil {
+			return &models.WorkflowPayload{}, err
+		}
+		edgeStr := string(edgeBytes)
+		edgesJSON = &edgeStr
+	}
+	if workflow.Viewport != nil {
+		viewportBytes, err := json.Marshal(workflow.Viewport)
+		if err != nil {
+			return &models.WorkflowPayload{}, err
+		}
+		viewportStr := string(viewportBytes)
+		viewportJSON = &viewportStr
+	}
+
+	return &models.WorkflowPayload{
+		UUID:              workflow.UUID,
+		UserID:            workflow.UserID,
+		Name:              workflow.Name,
+		Description:       workflow.Description,
+		IsActive:          workflow.IsActive,
+		CreatedAt:         workflow.CreatedAt,
+		UpdatedAt:         workflow.UpdatedAt,
+		WorkflowInit:      workflow.WorkflowInit,
+		WorkflowCompleted: workflow.WorkflowCompleted,
+		Status:            workflow.Status,
+		DirectoryToSave:   workflow.DirectoryToSave,
+		Nodes:             nodesJSON,
+		Edges:             edgesJSON,
+		Viewport:          viewportJSON,
+		Type:              commandType,
+	}, nil
 }

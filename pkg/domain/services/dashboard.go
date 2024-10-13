@@ -14,6 +14,6 @@ func NewDashboardService(repo repos.DashboardHTTPRepository) *DashboardService {
 }
 
 func (d *DashboardService) QueryDashboardInfo(userID string) (models.InfoDashboard, error) {
-	infoDashboard, err := d.dashboardHTTPRepo.GetWorkflowData(userID)
+	infoDashboard, err := d.dashboardHTTPRepo.GetLastWorkflowData(userID, 5)
 	return infoDashboard, err
 }

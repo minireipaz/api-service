@@ -186,7 +186,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	aux := &struct {
 		*Alias
 		// Nodes    string `json:"nodes"`
-    Nodes    json.RawMessage `json:"nodes"`
+		Nodes    json.RawMessage `json:"nodes"`
 		Edges    json.RawMessage `json:"edges"`
 		Viewport json.RawMessage `json:"viewport"`
 	}{
@@ -196,8 +196,8 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
-  // Nodes can be string or []Node
-  // BTW can be user another struct
+	// Nodes can be string or []Node
+	// BTW can be user another struct
 	if aux.Nodes != nil {
 		// 1 try to deserialize as []Node
 		if err := json.Unmarshal(aux.Nodes, &w.Nodes); err != nil {

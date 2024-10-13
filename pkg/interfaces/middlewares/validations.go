@@ -43,9 +43,9 @@ func ValidateOnCreateWorkflow() gin.HandlerFunc {
 
 func ValidateOnGetWorkflow() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-    // TODO: validations
-    ctx.Next()
-  }
+		// TODO: validations
+		ctx.Next()
+	}
 }
 
 func ValidateOnUpdateWorkflow() gin.HandlerFunc {

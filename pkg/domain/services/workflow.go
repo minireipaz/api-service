@@ -185,7 +185,7 @@ func (s *WorkflowService) retriesUpdateWorkflow(workflow *models.Workflow) (upda
 }
 
 func (s *WorkflowService) retriesGetWorkflow(userID, workflowID *string) (newWorkflow *models.Workflow, exist bool) {
-	exist = s.ValidateWorkflowGlobalUUID(workflowID) // not necesary validate global, better local validation
+	exist = s.ValidateWorkflowGlobalUUID(workflowID) // not necessary validate global, better local validation
 	if !exist {
 		return nil, exist
 	}

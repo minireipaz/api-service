@@ -66,6 +66,25 @@ func (c *WorkflowController) GetWorkflow(ctx *gin.Context) {
 	})
 }
 
+func (c *WorkflowController) GetAllWorkflows(ctx *gin.Context) {
+	userID := ctx.Param("iduser")
+	allWorkflows, exist := c.workflowService.GetAllWorkflows(&userID)
+
+	if !exist {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error":  models.UUIDInvalid,
+			"status": http.StatusNotFound,
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"error":    "",
+		"status":   http.StatusOK,
+		"workflow": allWorkflows,
+	})
+}
+
 func (c *WorkflowController) UpdateWorkflow(ctx *gin.Context) {
 	workflowFrontend := ctx.MustGet("workflow").(models.Workflow)
 	updated, exist := c.workflowService.UpdateWorkflow(&workflowFrontend)

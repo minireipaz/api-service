@@ -67,3 +67,45 @@ func (w *WorkflowHTTPRepository) GetWorkflowDataByID(userID, workflowID *string,
 
 	return result, nil
 }
+
+func (w *WorkflowHTTPRepository) GetAllWorkflows(userID *string, limitCount uint64) (*models.InfoWorkflow, error) {
+	u, err := url.Parse(w.databaseHTTPURL + "/all_workflow_data.json")
+	if err != nil {
+		return nil, err
+	}
+
+	q := u.Query()
+	q.Set("token", w.token)
+	q.Set("user_id", *userID)
+	q.Set("limit_count", fmt.Sprintf("%d", limitCount))
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := w.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("ERROR | response: %d, body: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var result *models.InfoWorkflow
+	// if err := json.Unmarshal(bodyBytes, &result); err != nil {
+	// 	log.Printf("ERROR | cannot decode body: %s %v", string(bodyBytes), err)
+	// 	return models.InfoDashboard{}, fmt.Errorf("ERROR | cannot decode token: %v", err)
+	// }
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("ERROR | cannot decode body: %s %v", string(bodyBytes), err)
+		return nil, fmt.Errorf("ERROR | cannot decode token: %v", err)
+	}
+
+	return result, nil
+}

@@ -25,4 +25,5 @@ type WorkflowBrokerRepository interface {
 
 type WorkflowHTTPRepository interface {
 	GetWorkflowDataByID(userID, workflowID *string, limitCount uint64) (*models.InfoWorkflow, error)
+	GetAllWorkflows(userID *string, limitCount uint64) (*models.InfoWorkflow, error)
 }

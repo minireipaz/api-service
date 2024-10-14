@@ -113,6 +113,22 @@ func (s *WorkflowService) GetWorkflow(userID, workflowID *string) (newWorkflow *
 	return nil, false
 }
 
+func (s *WorkflowService) GetAllWorkflows(userID *string) (allWorkflows []models.Workflow, exist bool) {
+	for i := 1; i < models.MaxAttempts; i++ {
+		allWorkflows, exist = s.retriesGetAllWorkflows(userID)
+		if exist {
+			return allWorkflows, exist
+		}
+
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
+		log.Printf("WARNING | Failed to get workflow, attempt %d:. Retrying in %v", i, waitTime)
+		time.Sleep(waitTime)
+	}
+	log.Print("ERROR | Needs to add to Dead Letter. Cannot get workflow")
+	// TODO: dead letter
+	return nil, false
+}
+
 func (s *WorkflowService) UpdateWorkflow(workflow *models.Workflow) (updated bool, exist bool) {
 	exist = s.ValidateWorkflowGlobalUUID(&workflow.UUID)
 	if !exist {
@@ -215,4 +231,14 @@ func (s *WorkflowService) retriesGetWorkflow(userID, workflowID *string) (newWor
 
 	// only need one row
 	return &reponseWorkflow.Data[0], exist
+}
+
+func (s *WorkflowService) retriesGetAllWorkflows(userID *string) (newWorkflow []models.Workflow, exist bool) {
+	// by default return array all workflows limited to 999
+	allWorkflows, err := s.httpRepo.GetAllWorkflows(userID, 999) // limited to 999 row
+	if err != nil {
+		return nil, false
+	}
+
+	return allWorkflows.Data, true
 }

@@ -58,37 +58,7 @@ This architecture allows us to:
 4. **Learning curve**: Requires knowledge of Kafka and its ecosystem.
 5. **Maintenance**: Needs additional configuration and maintenance.
 
-
-```
-graph TD
-    A[user interacts] --> B[CDN Frontend React]
-    B --> C[Frontend Vercel Function]
-    C --> D[Backend Vercel Function]
-    D --> E[REST Proxy]
-
-    subgraph KAFKA BROKER
-    F[Kafka Topic Broker Task Queue] --> G[Kafka HTTP Sink Connector]
-    end
-
-    subgraph KAFKA AS WORKFLOW DB
-    H[Kafka Topic workflow Workflow DB] --> I[Kafka HTTP Sink Connector]
-    end
-
-    E --> H
-    J[Scheduler Vercel Function] --> F
-    J --> H
-    G --> K[workers]
-    I --> J
-    K --> L[Results DB]
-    L --> J
-
-    L --> D
-    
-    %% Long Polling
-    B -.->|Long Polling| C
-    C -.->|Long Polling| D
-    D -.->|Long Polling| L
-```
+![](./diagrams/generalflow.png)
 
 ### Errors
 TODO

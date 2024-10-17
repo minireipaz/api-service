@@ -60,6 +60,58 @@ This architecture allows us to:
 
 ![](./diagrams/generalflow.png)
 
+## WorkflowHTTPRepository
+This struct manages HTTP operations related to workflows. Its primary methods include:
+
+- `NewWorkflowClientHTTP`: Factory method for creating a new repository instance.
+- `GetWorkflowDataByID`: Retrieves data for a specific workflow.
+- `GetAllWorkflows`: Fetches data for all workflows associated with a user.
+- `Database Interaction`:  The database exposes a pipe endpoint with JSON API. Parameters user_id, limit_count, user_token are passed as URL query parameters.
+- `URL construction`: user token management are handled through the config.ClickhouseConfig struct.
+
+Example curl:
+
+```bash
+curl -v 'https://api.tinybird.co/v0/pipes/workflow_data.json?limit_count=1&token=p.eyJ1Ijo.......7c&user_id=286098669831248953&workflow_id=03ea380f-da37-4310-ad1c-550a9380ade4'
+```
+
+Example pipe endpoint:
+
+```
+NODE endpoint
+DESCRIPTION >
+    This node selects workflows for a specific user and by workflow id
+PARAMETERS >
+    user_id String
+    limit_count String
+SQL >
+%
+SELECT 
+    w.id,
+    w.user_id,
+    w.name,
+    -- ... (other fields)
+FROM workflows w FINAL
+LEFT JOIN executions e ON w.id = e.workflow_id
+WHERE w.user_id = {{String(user_id, "")}}
+LIMIT {{UInt32(limit_count, 1)}}
+```
+
+### Usage:
+To utilize this client, instantiate WorkflowHTTPRepository with the appropriate configuration and invoke its methods to interact with workflows.
+
+```go
+client := // ... initialize HTTP client
+config := // ... initialize Clickhouse configuration
+repo := NewWorkflowClientHTTP(client, config)
+
+// Fetch data for a specific workflow
+workflowData, err := repo.GetWorkflowDataByID(&userID, &workflowID, limitCount)
+
+// Fetch all workflows for a user
+allWorkflows, err := repo.GetAllWorkflows(&userID, limitCount)
+```
+
 ### Errors
 TODO
 

@@ -60,6 +60,32 @@ This architecture allows us to:
 
 ![](./diagrams/generalflow.png)
 
+
+## Use of Cached Tokens
+To reduce the load on authentication and authorization systems, a cache store (in this case, Redis) is used to temporarily store access tokens for service users. This approach avoids the need to generate a new access token with each serverless function call, significantly enhancing performance. 
+
+The authentication and authorization for this system are managed using ZITADEL, which supports a maximum of 100 Daily Active Users (DAU), defined as users who authenticate or refresh their tokens within a given day. Given this limitation, we leverage caching and avoid token rotation in development environments, for example, to ensure we stay within usage limits while optimizing system efficiency.
+
+The relevant code for this process is as follows:
+
+```go
+cachedToken := authService.GetCachedServiceUserAccessToken()
+```
+
+If the cached token is unavailable or expired, a new token is generated and stored in the cache:
+```go
+// in dev state, not rotating service user access token in serverless functions
+if ac.config.GetEnv("ROTATE_SERVICE_USER_TOKEN", "n") == "y" {
+    if cachedToken == nil {
+        // Rotate token if it's expired or not found
+        _, err := authService.GenerateAccessToken()
+        if err != nil { // error saving retry read
+            cachedToken = authService.GetCachedServiceUserAccessToken()
+        }
+    }
+}
+```
+
 ## WorkflowHTTPRepository
 This struct manages HTTP operations related to workflows. Its primary methods include:
 

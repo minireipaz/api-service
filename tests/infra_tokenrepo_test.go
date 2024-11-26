@@ -11,10 +11,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var validTokenRedis = "valid-token-redis"
+var expiredTokenRedis = "expired-token-redis"
+var expiredToken = "expired-token"
+var validToken = "valid-token"
+var secondsExpired = time.Second * 3600
+
 func TestTokenRepository_GetToken(t *testing.T) {
 	r := redisclient.NewRedisClient()
 	tokenRepo := tokenrepo.NewTokenRepository(r)
-
 	tests := []struct {
 		name        string
 		setup       func()
@@ -36,8 +41,8 @@ func TestTokenRepository_GetToken(t *testing.T) {
 			name: "token exists in redis and is valid",
 			setup: func() {
 				token := &tokenrepo.Token{
-					ObtainedAt:  time.Now(),
-					AccessToken: "valid-token-redis",
+					ObtainedAt:  time.Now().UTC(),
+					AccessToken: &validTokenRedis,
 					TokenType:   "Bearer",
 					ExpiresIn:   3600, // 1 hora
 				}
@@ -45,8 +50,8 @@ func TestTokenRepository_GetToken(t *testing.T) {
 				r.Set("serviceuser:token", string(data))
 			},
 			expectedRes: &tokenrepo.Token{
-				ObtainedAt:  time.Now(),
-				AccessToken: "valid-token-redis",
+				ObtainedAt:  time.Now().UTC(),
+				AccessToken: &validTokenRedis,
 				TokenType:   "Bearer",
 				ExpiresIn:   3600,
 			},
@@ -58,8 +63,8 @@ func TestTokenRepository_GetToken(t *testing.T) {
 				r.Client.Del(r.Ctx, "serviceuser:token")
 			},
 			expectedRes: &tokenrepo.Token{ // val from before test case
-				ObtainedAt:  time.Now(),
-				AccessToken: "valid-token-redis",
+				ObtainedAt:  time.Now().UTC(),
+				AccessToken: &validTokenRedis,
 				TokenType:   "Bearer",
 				ExpiresIn:   3600,
 			},
@@ -69,17 +74,11 @@ func TestTokenRepository_GetToken(t *testing.T) {
 		{
 			name: "token exists in memory and is valid",
 			setup: func() {
-				// Guardar un token válido en memoria
-				tokenRepo.SaveToken(&tokenrepo.Token{
-					ObtainedAt:  time.Now(),
-					AccessToken: "valid-token",
-					TokenType:   "Bearer",
-					ExpiresIn:   3600, // 1 hora
-				})
+				tokenRepo.SaveToken(&validToken, &secondsExpired)
 			},
 			expectedRes: &tokenrepo.Token{
-				ObtainedAt:  time.Now(),
-				AccessToken: "valid-token",
+				ObtainedAt:  time.Now().UTC(),
+				AccessToken: &validToken,
 				TokenType:   "Bearer",
 				ExpiresIn:   3600,
 			},
@@ -89,12 +88,7 @@ func TestTokenRepository_GetToken(t *testing.T) {
 			name: "token exists in memory but is expired",
 			setup: func() {
 				// Guardar un token expirado en memoria
-				tokenRepo.SaveToken(&tokenrepo.Token{
-					ObtainedAt:  time.Now().Add(-2 * time.Hour),
-					AccessToken: "expired-token",
-					TokenType:   "Bearer",
-					ExpiresIn:   3600, // 1 hora
-				})
+				tokenRepo.SaveToken(&expiredToken, &secondsExpired)
 			},
 			expectedRes: nil,
 			expectedErr: "token expired",
@@ -103,8 +97,8 @@ func TestTokenRepository_GetToken(t *testing.T) {
 			name: "token exists in redis but is expired",
 			setup: func() {
 				token := &tokenrepo.Token{
-					ObtainedAt:  time.Now().Add(-2 * time.Hour),
-					AccessToken: "expired-token-redis",
+					ObtainedAt:  time.Now().UTC().Add(-2 * time.Hour),
+					AccessToken: &expiredTokenRedis,
 					TokenType:   "Bearer",
 					ExpiresIn:   3600, // 1 hora
 				}
@@ -160,8 +154,8 @@ func TestTokenRepository_SaveToken(t *testing.T) {
 			setup: func() {
 			},
 			token: &tokenrepo.Token{
-				ObtainedAt:  time.Now(),
-				AccessToken: "valid-token",
+				ObtainedAt:  time.Now().UTC(),
+				AccessToken: &validToken,
 				TokenType:   "Bearer",
 				ExpiresIn:   3600, // 1 hora
 			},
@@ -173,8 +167,8 @@ func TestTokenRepository_SaveToken(t *testing.T) {
 				r.Client.Close()
 			},
 			token: &tokenrepo.Token{
-				ObtainedAt:  time.Now(),
-				AccessToken: "valid-token",
+				ObtainedAt:  time.Now().UTC(),
+				AccessToken: &validToken, //"valid-token",
 				TokenType:   "Bearer",
 				ExpiresIn:   3600,
 			},
@@ -185,7 +179,7 @@ func TestTokenRepository_SaveToken(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setup()
-			err := tokenRepo.SaveToken(tt.token)
+			err := tokenRepo.SaveToken(tt.token.AccessToken, &tt.token.ExpiresIn)
 
 			if tt.expectedErr != "" {
 				assert.Error(t, err)

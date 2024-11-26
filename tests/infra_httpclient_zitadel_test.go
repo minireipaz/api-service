@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockHTTPClient simula un cliente HTTP
 type MockHTTPClient struct {
 	mock.Mock
 }
@@ -26,11 +25,6 @@ func (m *MockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	args := m.Called(req)
 	return args.Get(0).(*http.Response), args.Error(1)
 }
-
-// func (m *MockHTTPClient) DoRequest(req *http.Request) (*http.Response, error) {
-// 	args := m.Called(req)
-// 	return args.Get(0).(*http.Response), args.Error(1)
-// }
 
 func TestGetAccessToken(t *testing.T) {
 	tests := []struct {
@@ -41,6 +35,16 @@ func TestGetAccessToken(t *testing.T) {
 		expectedExpire time.Duration
 		expectedErr    string
 	}{
+		{
+			name: "HTTP error response",
+			mockResponse: &http.Response{
+				StatusCode: http.StatusInternalServerError,
+				Body:       io.NopCloser(bytes.NewBufferString("Internal Server Error")),
+			},
+			expectedToken:  "",
+			expectedExpire: models.OneDay,
+			expectedErr:    "ERROR | failed to get access token response: 500, body: Internal Server Error",
+		},
 		{
 			name: "successful request",
 			mockResponse: &http.Response{
@@ -58,19 +62,10 @@ func TestGetAccessToken(t *testing.T) {
 			name:           "error creating request",
 			mockError:      errors.New("request creation error"),
 			expectedToken:  "",
-			expectedExpire: httpclient.TwoDays,
+			expectedExpire: models.OneDay,
 			expectedErr:    "request creation error",
 		},
-		{
-			name: "HTTP error response",
-			mockResponse: &http.Response{
-				StatusCode: http.StatusInternalServerError,
-				Body:       io.NopCloser(bytes.NewBufferString("Internal Server Error")),
-			},
-			expectedToken:  "",
-			expectedExpire: httpclient.TwoDays,
-			expectedErr:    "ERROR | failed to get access token: 500",
-		},
+
 		{
 			name: "error decoding JSON",
 			mockResponse: &http.Response{
@@ -78,7 +73,7 @@ func TestGetAccessToken(t *testing.T) {
 				Body:       io.NopCloser(bytes.NewBufferString("invalid json")),
 			},
 			expectedToken:  "",
-			expectedExpire: httpclient.TwoDays,
+			expectedExpire: models.OneDay,
 			expectedErr:    "ERROR | cannot get decode token: invalid character 'i' looking for beginning of value",
 		},
 	}
@@ -97,7 +92,7 @@ func TestGetAccessToken(t *testing.T) {
 				configZitadel.GetZitadelProjectID(),
 				configZitadel.GetZitadelKeyClientID(),
 			)
-			// Crear el generador de JWT
+
 			jwtGenerator := auth.NewJWTGenerator(auth.JWTGeneratorConfig{
 				ServiceUser: auth.ServiceUserConfig{
 					UserID:     configZitadel.GetZitadelServiceUserID(),
@@ -116,21 +111,24 @@ func TestGetAccessToken(t *testing.T) {
 
 			client.SetHTTPClient(mockClient)
 
-			jwt, err := jwtGenerator.GenerateServiceUserJWT(models.TwoDays)
+			jwt, err := jwtGenerator.GenerateAppInstrospectJWT(time.Hour)
 			if err != nil {
 				t.Errorf("%v", err)
 			}
 
-			token, expires, err := client.GetServiceUserAccessToken(jwt)
-
+			token, expires, err := client.GenerateServiceUserAccessToken(jwt)
+			var tokenStr = ""
+			if token != nil && *token != "" {
+				tokenStr = *token
+			}
 			if tt.expectedErr != "" {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.expectedErr)
-				assert.Equal(t, tt.expectedToken, token)
+				assert.Equal(t, tt.expectedToken, tokenStr)
 				assert.Equal(t, tt.expectedExpire, expires)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedToken, token)
+				assert.Equal(t, tt.expectedToken, tokenStr)
 				assert.Equal(t, tt.expectedExpire, expires)
 			}
 		})

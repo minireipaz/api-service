@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"minireipaz/pkg/domain/models"
-	"minireipaz/pkg/domain/services"
+	// "minireipaz/pkg/domain/services"
 	"minireipaz/pkg/interfaces/controllers"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var _ services.UserService = (MockUserService)(nil)
+// var mockUserService *MockUserService = new(MockUserService)
 
 type MockUserService struct {
 	mock.Mock

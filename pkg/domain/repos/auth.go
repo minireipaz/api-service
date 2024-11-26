@@ -5,26 +5,33 @@ import (
 	"time"
 )
 
+type AuthService interface {
+	GenerateAccessToken() (*string, error)
+	GetCachedServiceUserAccessToken() *string
+	VerifyServiceUserToken(token string) (isOk bool, err error)
+	VerifyUserToken(userToken string) (bool, bool)
+}
+
 type AuthRepository interface {
 	GenerateIntrospectJWT(duration time.Duration) string
-	GenerateNewToken() (string, error)
-	GetServiceUserAccessToken() (string, error)
+	GenerateAccessToken() (string, error)
 	VerifyServiceUserToken(token string) (bool, error)
 	verifyWithIDProvider(token *tokenrepo.Token) (bool, error)
-	VerifyUserToken(userToken string) bool
+	VerifyUserToken(userToken string) (bool, bool)
 }
 
 type JWTGenerator interface {
-	GenerateInstrospectJWT(duration time.Duration) (string, error)
-	GenerateServiceUserJWT(duration time.Duration) (string, error)
+	GenerateServiceUserAssertionJWT(duration time.Duration) (string, error)
+	GenerateAppInstrospectJWT(duration time.Duration) (string, error)
 }
 
 type ZitadelClient interface {
-	GetServiceUserAccessToken(jwt string) (string, time.Duration, error)
-	ValidateUserToken(userToken, introspectJWT string) (bool, error)
+	GenerateServiceUserAccessToken(jwt string) (*string, time.Duration, error)
+	ValidateUserToken(userToken, introspectJWT string) (bool, int64, error)
+	ValidateServiceUserAccessToken(userToken, introspectJWT *string) (bool, error)
 }
 
 type TokenRepository interface {
-	SaveToken(token *tokenrepo.Token) error
+	SaveToken(accessToken *string, expiresIn *time.Duration) error
 	GetToken() (*tokenrepo.Token, error)
 }

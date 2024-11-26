@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"log"
 	"minireipaz/pkg/domain/models"
-	"minireipaz/pkg/domain/services"
+	"minireipaz/pkg/domain/repos"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type DashboardController struct {
-	service     *services.DashboardService
-	authService *services.AuthService
+	service     repos.DashboardService
+	authService repos.AuthService
 }
 
-func NewDashboardController(service *services.DashboardService, authServ *services.AuthService) *DashboardController {
+func NewDashboardController(service repos.DashboardService, authServ repos.AuthService) *DashboardController {
 	return &DashboardController{
 		service:     service,
 		authService: authServ,

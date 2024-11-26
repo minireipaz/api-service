@@ -5,15 +5,15 @@ import (
 	"minireipaz/pkg/domain/repos"
 )
 
-type DashboardService struct {
+type DashboardServiceImpl struct {
 	dashboardHTTPRepo repos.DashboardHTTPRepository
 }
 
-func NewDashboardService(repo repos.DashboardHTTPRepository) *DashboardService {
-	return &DashboardService{dashboardHTTPRepo: repo}
+func NewDashboardService(repo repos.DashboardHTTPRepository) repos.DashboardService {
+	return &DashboardServiceImpl{dashboardHTTPRepo: repo}
 }
 
-func (d *DashboardService) QueryDashboardInfo(userID string) (models.InfoDashboard, error) {
+func (d *DashboardServiceImpl) QueryDashboardInfo(userID string) (models.InfoDashboard, error) {
 	infoDashboard, err := d.dashboardHTTPRepo.GetLastWorkflowData(userID, 5)
 	return infoDashboard, err
 }

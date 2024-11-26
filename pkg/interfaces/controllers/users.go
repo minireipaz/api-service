@@ -3,17 +3,17 @@ package controllers
 import (
 	"log"
 	"minireipaz/pkg/domain/models"
-	"minireipaz/pkg/domain/services"
+	"minireipaz/pkg/domain/repos"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserController struct {
-	userService *services.UserService
+	userService repos.UserService
 }
 
-func NewUserController(newUserService *services.UserService) *UserController {
+func NewUserController(newUserService repos.UserService) *UserController {
 	return &UserController{userService: newUserService}
 }
 

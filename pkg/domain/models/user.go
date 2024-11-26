@@ -2,23 +2,22 @@ package models
 
 import (
 	"fmt"
-	"time"
 )
 
 type SyncUserRequest struct {
-	ID                       string     `json:"id,omitempty"`
-	AccessToken              string     `json:"access_token" binding:"required,max=1000"`
-	Sub                      string     `json:"user_id" binding:"required,max=50"`
-	Status                   UserStatus `json:"status" binding:"omitempty,oneof=1 2 3 4"`
-	RoleID                   UserRoleID `json:"roleId" binding:"omitempty,oneof=1 2 3 4 5 6 7 8 9 10"`
-	ResetPasswordToken       *string    `json:"resetPasswordToken,omitempty"`
-	ResetPasswordTokenSentAt *time.Time `json:"resetPasswordTokenSentAt,omitempty"`
-	InvitationToken          *string    `json:"invitationToken,omitempty"`
-	InvitationTokenSentAt    *time.Time `json:"invitationTokenSentAt,omitempty"`
-	TrialExpiryDate          *time.Time `json:"trialExpiryDate,omitempty"`
-	DeletedAt                *time.Time `json:"deleted_at,omitempty"`
-	CreatedAt                *time.Time `json:"created_at,omitempty"`
-	UpdatedAt                *time.Time `json:"updated_at,omitempty"`
+	ID                       string      `json:"id,omitempty"`
+	AccessToken              string      `json:"access_token" binding:"required,max=1000"`
+	Sub                      string      `json:"user_id" binding:"required,max=50"`
+	Status                   UserStatus  `json:"status" binding:"omitempty,oneof=1 2 3 4"`
+	RoleID                   UserRoleID  `json:"roleId" binding:"omitempty,oneof=1 2 3 4 5 6 7 8 9 10"`
+	ResetPasswordToken       *string     `json:"resetPasswordToken,omitempty"`
+	ResetPasswordTokenSentAt *CustomTime `json:"resetPasswordTokenSentAt,omitempty"`
+	InvitationToken          *string     `json:"invitationToken,omitempty"`
+	InvitationTokenSentAt    *CustomTime `json:"invitationTokenSentAt,omitempty"`
+	TrialExpiryDate          *CustomTime `json:"trialExpiryDate,omitempty"`
+	DeletedAt                *CustomTime `json:"deleted_at,omitempty"`
+	CreatedAt                *CustomTime `json:"created_at,omitempty"`
+	UpdatedAt                *CustomTime `json:"updated_at,omitempty"`
 }
 
 type UserStatus uint8
@@ -88,17 +87,21 @@ type SyncUserResponse struct {
 }
 
 type UnauthorizedError struct {
-	Error string `json:"error"`
+	Error  string `json:"error"`
+	Status int    `json:"status"`
 }
 
 type InvalidRequestError struct {
-	Error string `json:"error"`
+	Error  string `json:"error"`
+	Status int    `json:"status"`
 }
 
 type UnsupportedMediaTypeError struct {
-	Error string `json:"error"`
+	Error  string `json:"error"`
+	Status int    `json:"status"`
 }
 
 type TooManyRequestsError struct {
-	Error string `json:"error"`
+	Error  string `json:"error"`
+	Status int    `json:"status"`
 }

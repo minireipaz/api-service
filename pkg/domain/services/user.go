@@ -6,41 +6,21 @@ import (
 	"minireipaz/pkg/domain/repos"
 )
 
-// type UserServiceInterface interface {
-// 	SynUser(user *models.SyncUserRequest) (created, exist bool)
-// }
-
-// var _ UserServiceInterface = (*UserService)(nil)
-
-type UserService struct {
+type userServiceImpl struct {
 	userHTTPRepo   repos.UserHTTPRepository
 	userRedisRepo  repos.UserRedisRepository
 	userBrokerRepo repos.UserBrokerRepository
 }
 
-func NewUserService(repoHTTP repos.UserHTTPRepository, repoRedis repos.UserRedisRepository, repoBroker repos.UserBrokerRepository) *UserService {
-	return &UserService{
+func NewUserService(repoHTTP repos.UserHTTPRepository, repoRedis repos.UserRedisRepository, repoBroker repos.UserBrokerRepository) repos.UserService {
+	return &userServiceImpl{
 		userHTTPRepo:   repoHTTP,
 		userRedisRepo:  repoRedis,
 		userBrokerRepo: repoBroker,
 	}
 }
 
-// type UserService struct {
-// 	repoHTTP   *httpclient.UserRepository
-// 	repoRedis  *redisclient.UserRedisRepository
-// 	repoBroker *brokerclient.UserKafkaRepository
-// }
-
-// func NewUserService(newRepoHTTP *httpclient.UserRepository, newRepoRedis *redisclient.UserRedisRepository, newRepoBroker *brokerclient.UserKafkaRepository) *UserService {
-// 	return &UserService{
-// 		repoHTTP:   newRepoHTTP,
-// 		repoRedis:  newRepoRedis,
-// 		repoBroker: newRepoBroker,
-// 	}
-// }
-
-func (u *UserService) SynUser(user *models.SyncUserRequest) (created, exist bool) {
+func (u *userServiceImpl) SynUser(user *models.SyncUserRequest) (created, exist bool) {
 	exist, err := u.userRedisRepo.CheckUserExist(user)
 	if err != nil {
 		log.Printf("ERROR | Cannot access to repo redis %v", err)

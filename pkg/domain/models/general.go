@@ -9,4 +9,12 @@ const (
 	MaxRangeSleepDuration = 500 * time.Millisecond // max range time wait offset
 	SleepOffset           = 50 * time.Millisecond  // offset
 	SaveOffset            = 10
+	MaxRowsFromDB         = 999
+	MaxTimeoutContext     = 60 * time.Second
+	TimeDriftForExpire    = 600 // 10 minutes
+)
+
+const (
+	CredentialCreateContextKey   = "createcredential"
+	CredentialExchangeContextKey = "exchangecredential"
 )

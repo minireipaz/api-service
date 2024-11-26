@@ -19,9 +19,12 @@ func (ct *CustomTime) UnmarshalJSON(b []byte) error {
 	s = s[1 : len(s)-1]
 	parsedTime, err := time.Parse(time.RFC3339, s)
 	if err != nil {
-		log.Printf("ERROR | Cannot parse time: %v", err)
-		*ct = CustomTime{Time: time.Time{}}
-		return nil
+		parsedTime, err = time.Parse(time.DateTime, s)
+		if err != nil {
+			log.Printf("ERROR | Cannot parse time: %v", err)
+			*ct = CustomTime{Time: time.Time{}}
+			return nil
+		}
 	}
 
 	ct.Time = parsedTime

@@ -2,6 +2,10 @@ package repos
 
 import "minireipaz/pkg/domain/models"
 
+type UserService interface {
+	SynUser(user *models.SyncUserRequest) (created, exist bool)
+}
+
 type UserRedisRepository interface {
 	CheckUserExist(user *models.SyncUserRequest) (bool, error)
 	CheckLockExist(user *models.SyncUserRequest) (bool, error)

@@ -47,6 +47,11 @@ func (r *RedisClient) Set(key string, value interface{}) error {
 	return r.Client.Set(r.Ctx, key, value, 0).Err()
 }
 
+func (r *RedisClient) SetEx(key string, value interface{}, expiration time.Duration) (bool, error) {
+	result, err := r.Client.Set(r.Ctx, key, value, expiration).Result()
+	return result == "OK", err
+}
+
 func (r *RedisClient) Hset(key string, field string, values interface{}) bool {
 	inserted := r.Client.HSet(r.Ctx, key, field, values).Val()
 	return inserted != 0
@@ -160,7 +165,7 @@ func (r *RedisClient) RemoveWorkflow(workflow *models.Workflow) error {
 
 func (r *RedisClient) WatchUser(user *models.SyncUserRequest, lockKey, userKey string, duration time.Duration) (inserted bool, lockExists bool, userExists bool, err error) {
 	err = r.Client.Watch(r.Ctx, func(tx *redis.Tx) error {
-		lockExists, err = checkLockExists(r.Ctx, tx, lockKey, user.Sub) // Quizas no es necesario
+		lockExists, err = checkLockExists(r.Ctx, tx, lockKey, user.Sub) // Not necessary
 		if err != nil || lockExists {
 			return err
 		}
@@ -237,11 +242,12 @@ func executePipeline(ctx context.Context, tx *redis.Tx, lockKey, userKey string,
 	return true, nil
 }
 
+// REDO
 func (r *RedisClient) WatchToken(data string, key string, expires time.Duration) error {
 	err := r.Client.Watch(r.Ctx, func(tx *redis.Tx) error {
 		_, err := tx.TxPipelined(r.Ctx, func(pipe redis.Pipeliner) error {
-			pipe.SetNX(r.Ctx, key, data, expires)
-			return nil
+			err := pipe.SetNX(r.Ctx, key, data, expires).Err()
+			return err
 		})
 		return err
 	}, key)

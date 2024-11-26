@@ -2,6 +2,7 @@ package di
 
 import (
 	"minireipaz/pkg/config"
+	"minireipaz/pkg/domain/repos"
 	"minireipaz/pkg/domain/services"
 	"minireipaz/pkg/infra/brokerclient"
 	"minireipaz/pkg/infra/httpclient"
@@ -9,7 +10,7 @@ import (
 	"minireipaz/pkg/interfaces/controllers"
 )
 
-func InitDependencies() (*controllers.WorkflowController, *services.AuthService, *controllers.UserController, *controllers.DashboardController, *controllers.AuthController) {
+func InitDependencies() (*controllers.WorkflowController, *repos.AuthService, *controllers.UserController, *controllers.DashboardController, *controllers.AuthController, *controllers.CredentialController) {
 	configZitadel := config.NewZitaldelEnvConfig()
 	kafkaConfig := config.NewKafkaEnvConfig()
 	clickhouseConfig := config.NewClickhouseEnvConfig()
@@ -30,6 +31,17 @@ func InitDependencies() (*controllers.WorkflowController, *services.AuthService,
 	userService := services.NewUserService(repoUserHTTP, repoUserRedis, repoUserBroker)
 	userController := controllers.NewUserController(userService)
 
+	credentialHTTPClient := &httpclient.ClientImpl{}
+	credentialRedisClient := redisclient.NewRedisClient()
+	credentialBrokerClient := brokerclient.NewBrokerClient(kafkaConfig)
+	redisCredentialRepo := redisclient.NewCredentialRedisRepository(credentialRedisClient)
+	googleCredentialRepo := httpclient.NewGoogleCredentialRepository(credentialHTTPClient)   // same client
+	facebookCredentialRepo := httpclient.NewGoogleCredentialRepository(credentialHTTPClient) // same client
+	repoCredentialBroker := brokerclient.NewCredentialKafkaRepository(credentialBrokerClient)
+	repoCredentialHTTP := httpclient.NewCredentialRepository(credentialHTTPClient, clickhouseConfig)
+	credentialService := services.NewCredentialService(googleCredentialRepo, facebookCredentialRepo, redisCredentialRepo, repoCredentialBroker, repoCredentialHTTP)
+	credentialController := controllers.NewCredentialController(credentialService, authService)
+
 	workflowHTTPClient := &httpclient.ClientImpl{}
 	repoWorkflowHTTP := httpclient.NewWorkflowClientHTTP(workflowHTTPClient, clickhouseConfig)
 	workflowRedisClient := redisclient.NewRedisClient()
@@ -38,12 +50,12 @@ func InitDependencies() (*controllers.WorkflowController, *services.AuthService,
 	repoWorkflowBroker := brokerclient.NewWorkflowKafkaRepository(workflowBrokerClient)
 	idService := services.NewUUIDService()
 	workflowService := services.NewWorkflowService(repoWorkflowRedis, repoWorkflowBroker, idService, repoWorkflowHTTP)
-	workflowController := controllers.NewWorkflowController(workflowService, authService)
+	workflowController := controllers.NewWorkflowController(workflowService, credentialService, authService)
 
 	dashboardHTTPClient := &httpclient.ClientImpl{}
 	dashboardRepo := httpclient.NewDashboardRepository(dashboardHTTPClient, clickhouseConfig)
 	dashboardService := services.NewDashboardService(dashboardRepo)
 	dashboardController := controllers.NewDashboardController(dashboardService, authService)
 
-	return workflowController, authService, userController, dashboardController, authController
+	return workflowController, &authService, userController, dashboardController, authController, credentialController
 }

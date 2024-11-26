@@ -11,6 +11,9 @@ import (
 	"github.com/google/uuid"
 )
 
+type WorkflowService interface {
+}
+
 type WorkflowRepository struct {
 	redisClient *RedisClient
 }

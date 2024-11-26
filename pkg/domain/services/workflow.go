@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"minireipaz/pkg/common"
 	"minireipaz/pkg/domain/models"
@@ -8,15 +10,15 @@ import (
 	"time"
 )
 
-type WorkflowService struct {
+type WorkflowServiceImpl struct {
 	redisRepo   repos.WorkflowRedisRepoInterface
 	brokerRepo  repos.WorkflowBrokerRepository
 	idGenerator IDService
 	httpRepo    repos.WorkflowHTTPRepository
 }
 
-func NewWorkflowService(repoRedis repos.WorkflowRedisRepoInterface, repoBroker repos.WorkflowBrokerRepository, idGenerator IDService, repoHTTP repos.WorkflowHTTPRepository) *WorkflowService {
-	return &WorkflowService{
+func NewWorkflowService(repoRedis repos.WorkflowRedisRepoInterface, repoBroker repos.WorkflowBrokerRepository, idGenerator IDService, repoHTTP repos.WorkflowHTTPRepository) repos.WorkflowService {
+	return &WorkflowServiceImpl{
 		redisRepo:   repoRedis,
 		brokerRepo:  repoBroker,
 		idGenerator: idGenerator,
@@ -24,7 +26,7 @@ func NewWorkflowService(repoRedis repos.WorkflowRedisRepoInterface, repoBroker r
 	}
 }
 
-func (s *WorkflowService) retriesCreateWorkflow(workflow *models.Workflow) (bool, bool) {
+func (s *WorkflowServiceImpl) retriesCreateWorkflow(workflow *models.Workflow) (bool, bool) {
 	workflow.UUID = s.idGenerator.GenerateWorkflowID()
 	existWorkflowUUID := s.ValidateUserWorkflowUUID(&workflow.UUID, &workflow.Name) // check individual
 	if existWorkflowUUID {
@@ -68,7 +70,7 @@ func (s *WorkflowService) retriesCreateWorkflow(workflow *models.Workflow) (bool
 	return createdRedis, existRedis
 }
 
-func (s *WorkflowService) CreateWorkflow(workflowFrontend *models.WorkflowFrontend) (created bool, exist bool, workflow *models.Workflow) {
+func (s *WorkflowServiceImpl) CreateWorkflow(workflowFrontend *models.WorkflowFrontend) (created bool, exist bool, workflow *models.Workflow) {
 	workflow = s.fromWorkflowFrontendToBackend(workflowFrontend)
 	// validate if exist globally uuid
 	exist = s.ValidateWorkflowGlobalUUID(&workflow.UUID)
@@ -93,83 +95,116 @@ func (s *WorkflowService) CreateWorkflow(workflowFrontend *models.WorkflowFronte
 	return false, false, workflow
 }
 
-func (s *WorkflowService) GetWorkflow(userID, workflowID *string) (newWorkflow *models.Workflow, exist bool) {
+func (s *WorkflowServiceImpl) GetWorkflow(userID, workflowID *string) (newWorkflow *models.Workflow, exist bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), models.MaxTimeoutContext)
+	defer cancel()
+
 	exist = s.ValidateWorkflowGlobalUUID(workflowID)
 	if !exist {
 		return nil, false
 	}
-	for i := 1; i < models.MaxAttempts; i++ {
+
+	exist = s.retryTemplateWithBool(ctx, models.MaxAttempts, func() bool {
 		newWorkflow, exist = s.retriesGetWorkflow(userID, workflowID)
-		if exist {
-			return newWorkflow, exist
-		}
-
-		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
-		log.Printf("WARNING | Failed to get workflow, attempt %d:. Retrying in %v", i, waitTime)
-		time.Sleep(waitTime)
+		return exist
+	})
+	if exist {
+		return newWorkflow, exist
 	}
-	log.Print("ERROR | Needs to add to Dead Letter. Cannot get workflow")
+
 	// TODO: dead letter
 	return nil, false
 }
 
-func (s *WorkflowService) GetAllWorkflows(userID *string) (allWorkflows []models.Workflow, exist bool) {
-	for i := 1; i < models.MaxAttempts; i++ {
-		allWorkflows, exist = s.retriesGetAllWorkflows(userID)
-		if exist {
-			return allWorkflows, exist
-		}
+func (s *WorkflowServiceImpl) GetAllWorkflows(userID *string) (allWorkflows []models.Workflow, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), models.MaxTimeoutContext)
+	defer cancel()
 
-		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
-		log.Printf("WARNING | Failed to get workflow, attempt %d:. Retrying in %v", i, waitTime)
-		time.Sleep(waitTime)
-	}
-	log.Print("ERROR | Needs to add to Dead Letter. Cannot get workflow")
-	// TODO: dead letter
-	return nil, false
+	err = s.retryTemplateWithError(ctx, models.MaxAttempts, func() error {
+		var lastError error
+		allWorkflows, lastError = s.retriesGetAllWorkflows(ctx, userID)
+		return lastError
+	})
+
+	// TODO: Dead Letter Queue
+	return allWorkflows, err
 }
 
-func (s *WorkflowService) UpdateWorkflow(workflow *models.Workflow) (updated bool, exist bool) {
+func (s *WorkflowServiceImpl) retryTemplateWithError(ctx context.Context, maxAttempts int, operation func() error) error {
+	for i := 1; i < maxAttempts; i++ {
+		if err := operation(); err == nil {
+			return nil
+		}
+		// not necesaary last wait time
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(waitTime):
+		}
+	}
+	return fmt.Errorf("ERROR | operation failed after %d attempts", maxAttempts)
+}
+
+func (s *WorkflowServiceImpl) retryTemplateWithBool(ctx context.Context, maxAttempts int, operation func() bool) bool {
+	for i := 1; i < maxAttempts; i++ {
+		if exist := operation(); exist {
+			return exist
+		}
+		// not necesaary last wait time
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
+		select {
+		case <-ctx.Done():
+			return false
+		case <-time.After(waitTime):
+		}
+	}
+	log.Printf("ERROR | operation failed after %d attempts", maxAttempts)
+	return false
+}
+
+func (s *WorkflowServiceImpl) UpdateWorkflow(workflow *models.Workflow) (updated bool, exist bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), models.MaxTimeoutContext)
+	defer cancel()
+
 	exist = s.ValidateWorkflowGlobalUUID(&workflow.UUID)
 	if !exist {
 		return false, exist
 	}
-	for i := 1; i < models.MaxAttempts; i++ {
-		updated, exist = s.retriesUpdateWorkflow(workflow)
-		if !exist {
-			return updated, exist
-		}
-		if exist && updated {
-			return updated, exist
-		}
 
-		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
-		log.Printf("WARNING | Failed to update workflow, attempt %d:. Retrying in %v", i, waitTime)
-		time.Sleep(waitTime)
-	}
-	log.Print("ERROR | Needs to add to Dead Letter. Cannot update workflow")
-	// TODO: dead letter
-	return false, exist // exist but not updated
+	exist = s.retryTemplateWithBool(ctx, models.MaxAttempts, func() bool {
+		updated, exist = s.retriesUpdateWorkflow(workflow)
+		return exist
+	})
+	return updated, exist
 }
 
-func (s *WorkflowService) fromWorkflowFrontendToBackend(fw *models.WorkflowFrontend) *models.Workflow {
+func (s *WorkflowServiceImpl) fromWorkflowFrontendToBackend(fw *models.WorkflowFrontend) *models.Workflow {
 	return &models.Workflow{
 		Name:            fw.WorkflowName,
 		Description:     fw.Description,
 		DirectoryToSave: fw.DirectoryToSave,
 		UserID:          fw.UserID,
+		Nodes: []models.Node{
+			s.createInitialNode(),
+		},
+		Viewport: &models.Viewport{
+			X:    234.5,
+			Y:    534.5,
+			Zoom: 1,
+		},
 	}
 }
 
-func (s *WorkflowService) ValidateWorkflowGlobalUUID(uuid *string) bool {
+func (s *WorkflowServiceImpl) ValidateWorkflowGlobalUUID(uuid *string) bool {
 	return s.redisRepo.ValidateWorkflowGlobalUUID(uuid)
 }
 
-func (s *WorkflowService) ValidateUserWorkflowUUID(worklfowID, name *string) bool {
+func (s *WorkflowServiceImpl) ValidateUserWorkflowUUID(worklfowID, name *string) bool {
 	return s.redisRepo.ValidateUserWorkflowUUID(worklfowID, name)
 }
 
-func (s *WorkflowService) retriesUpdateWorkflow(workflow *models.Workflow) (updated, exist bool) {
+func (s *WorkflowServiceImpl) retriesUpdateWorkflow(workflow *models.Workflow) (updated, exist bool) {
 	exist = s.ValidateWorkflowGlobalUUID(&workflow.UUID)
 	if !exist {
 		return false, exist
@@ -200,7 +235,7 @@ func (s *WorkflowService) retriesUpdateWorkflow(workflow *models.Workflow) (upda
 	return updated, exist
 }
 
-func (s *WorkflowService) retriesGetWorkflow(userID, workflowID *string) (newWorkflow *models.Workflow, exist bool) {
+func (s *WorkflowServiceImpl) retriesGetWorkflow(userID, workflowID *string) (newWorkflow *models.Workflow, exist bool) {
 	exist = s.ValidateWorkflowGlobalUUID(workflowID) // not necessary validate global, better local validation
 	if !exist {
 		return nil, exist
@@ -233,12 +268,35 @@ func (s *WorkflowService) retriesGetWorkflow(userID, workflowID *string) (newWor
 	return &reponseWorkflow.Data[0], exist
 }
 
-func (s *WorkflowService) retriesGetAllWorkflows(userID *string) (newWorkflow []models.Workflow, exist bool) {
+func (s *WorkflowServiceImpl) retriesGetAllWorkflows(_ context.Context, userID *string) ([]models.Workflow, error) {
 	// by default return array all workflows limited to 999
-	allWorkflows, err := s.httpRepo.GetAllWorkflows(userID, 999) // limited to 999 row
+	allWorkflows, err := s.httpRepo.GetAllWorkflows(userID, models.MaxRowsFromDB) // limited to 999 row
 	if err != nil {
-		return nil, false
+		return []models.Workflow{}, err
 	}
+	return allWorkflows.Data, err
+}
 
-	return allWorkflows.Data, true
+func (s *WorkflowServiceImpl) createInitialNode() models.Node {
+	return models.Node{
+		ID:   "initial-node",
+		Type: "wrapperNode",
+		Position: &models.Position{
+			X: 2,
+			Y: 0,
+		},
+		Data: &models.DataNode{
+			ID:             "initial-node",
+			Label:          "Start Point",
+			Options:        "Initial Options",
+			Description:    "This is the starting point of your workflow",
+			WorkflowID:     "", // asigned later
+			NodeID:         "initial-node",
+			CredentialData: models.RequestCreateCredential{},
+		},
+		Measured: &models.Measured{
+			Width:  50,
+			Height: 50,
+		},
+	}
 }

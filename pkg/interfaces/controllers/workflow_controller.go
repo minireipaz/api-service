@@ -2,19 +2,24 @@ package controllers
 
 import (
 	"minireipaz/pkg/domain/models"
-	"minireipaz/pkg/domain/services"
+	"minireipaz/pkg/domain/repos"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type WorkflowController struct {
-	workflowService *services.WorkflowService
-	authService     *services.AuthService
+	authService       repos.AuthService
+	workflowService   repos.WorkflowService
+	credentialService repos.CredentialService
 }
 
-func NewWorkflowController(newWorkflowService *services.WorkflowService, newAuthService *services.AuthService) *WorkflowController {
-	return &WorkflowController{workflowService: newWorkflowService, authService: newAuthService}
+func NewWorkflowController(newWorkflowService repos.WorkflowService, newCredentialService repos.CredentialService, newAuthService repos.AuthService) *WorkflowController {
+	return &WorkflowController{
+		workflowService:   newWorkflowService,
+		credentialService: newCredentialService,
+		authService:       newAuthService,
+	}
 }
 
 func (c *WorkflowController) CreateWorkflow(ctx *gin.Context) {
@@ -59,18 +64,26 @@ func (c *WorkflowController) GetWorkflow(ctx *gin.Context) {
 		return
 	}
 
+	credentials, _ := c.credentialService.GetAllCredentials(&userID)
+	if credentials.Status != 200 {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error":  models.UUIDInvalid,
+			"status": http.StatusNotFound,
+		})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"error":    "",
-		"status":   http.StatusOK,
-		"workflow": newWorkflow,
+		"error":       "",
+		"status":      http.StatusOK,
+		"workflow":    newWorkflow,
+		"credentials": credentials.Credentials,
 	})
 }
 
 func (c *WorkflowController) GetAllWorkflows(ctx *gin.Context) {
 	userID := ctx.Param("iduser")
-	allWorkflows, exist := c.workflowService.GetAllWorkflows(&userID)
-
-	if !exist {
+	allWorkflows, err := c.workflowService.GetAllWorkflows(&userID)
+	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"error":  models.UUIDInvalid,
 			"status": http.StatusNotFound,

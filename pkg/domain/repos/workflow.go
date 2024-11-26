@@ -7,6 +7,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type WorkflowService interface {
+	CreateWorkflow(workflowFrontend *models.WorkflowFrontend) (created bool, exist bool, workflow *models.Workflow)
+	GetWorkflow(userID, workflowID *string) (newWorkflow *models.Workflow, exist bool)
+	GetAllWorkflows(userID *string) (allWorkflows []models.Workflow, err error)
+	UpdateWorkflow(workflow *models.Workflow) (updated bool, exist bool)
+	ValidateWorkflowGlobalUUID(uuid *string) bool
+	ValidateUserWorkflowUUID(worklfowID, name *string) bool
+}
+
 type WorkflowRedisRepoInterface interface {
 	Create(workflow *models.Workflow) (created bool, exist bool)
 	Update(worflow *models.Workflow) (updated bool, exist bool)

@@ -6,8 +6,8 @@ func NewUnauthorizedError(message string) models.UnauthorizedError {
 	return models.UnauthorizedError{Error: message}
 }
 
-func NewInvalidRequestError(message string) models.InvalidRequestError {
-	return models.InvalidRequestError{Error: message}
+func NewInvalidRequestError(message string, status int) models.InvalidRequestError {
+	return models.InvalidRequestError{Error: message, Status: status}
 }
 
 func NewUnsupportedMediaTypeError(message string) models.UnsupportedMediaTypeError {

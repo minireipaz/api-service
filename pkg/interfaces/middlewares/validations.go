@@ -11,7 +11,7 @@ func ValidateOnCreateWorkflow() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var workflow models.WorkflowFrontend
 		if err := ctx.ShouldBindJSON(&workflow); err != nil {
-			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON, http.StatusBadRequest))
 			ctx.Abort()
 			return
 		}
@@ -52,7 +52,7 @@ func ValidateOnUpdateWorkflow() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var workflow models.Workflow
 		if err := ctx.ShouldBindJSON(&workflow); err != nil {
-			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON, http.StatusBadRequest))
 			ctx.Abort()
 			return
 		}
@@ -86,7 +86,7 @@ func ValidateUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var currentUser models.SyncUserRequest
 		if err := ctx.ShouldBindJSON(&currentUser); err != nil {
-			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON))
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON, http.StatusBadRequest))
 			ctx.Abort()
 			return
 		}
@@ -114,6 +114,32 @@ func ValidateUser() gin.HandlerFunc {
 
 func ValidateUserAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		ctx.Next()
+	}
+}
+
+func ValidateOnCreateCredential() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var currentReq models.RequestCreateCredential
+		if err := ctx.ShouldBindJSON(&currentReq); err != nil {
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON, http.StatusBadRequest))
+			ctx.Abort()
+			return
+		}
+		ctx.Set(models.CredentialCreateContextKey, currentReq)
+		ctx.Next()
+	}
+}
+
+func ValidateOnExchangeCredential() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var currentReq models.RequestExchangeCredential
+		if err := ctx.ShouldBindJSON(&currentReq); err != nil {
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON, http.StatusBadRequest))
+			ctx.Abort()
+			return
+		}
+		ctx.Set(models.CredentialExchangeContextKey, currentReq)
 		ctx.Next()
 	}
 }

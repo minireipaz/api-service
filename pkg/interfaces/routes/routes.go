@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(app *gin.Engine, workflowController *controllers.WorkflowController, userController *controllers.UserController, dashboardController *controllers.DashboardController, authController *controllers.AuthController) {
+func Register(app *gin.Engine, workflowController *controllers.WorkflowController, userController *controllers.UserController, dashboardController *controllers.DashboardController, authController *controllers.AuthController, credentialController *controllers.CredentialController) {
 	app.NoRoute(ErrRouter)
 
 	// Routes in groups
@@ -19,16 +19,22 @@ func Register(app *gin.Engine, workflowController *controllers.WorkflowControlle
 
 		workflows := api.Group("/workflows")
 		{
+			workflows.GET("/:iduser/workflow/:idworkflow/:usertoken", authController.VerifyUserTokenForMiddleware, middlewares.ValidateOnGetWorkflow(), workflowController.GetWorkflow)
+			workflows.GET("/:iduser/:usertoken", authController.VerifyUserTokenForMiddleware, middlewares.ValidateOnGetWorkflow(), workflowController.GetAllWorkflows)
 			workflows.POST("", middlewares.ValidateOnCreateWorkflow(), workflowController.CreateWorkflow)
-			workflows.PUT(":id", middlewares.ValidateOnUpdateWorkflow(), workflowController.UpdateWorkflow)
-			workflows.GET("/:iduser/:idworkflow", middlewares.ValidateOnGetWorkflow(), workflowController.GetWorkflow)
-			workflows.GET("/:iduser", middlewares.ValidateOnGetWorkflow(), workflowController.GetAllWorkflows)
+			workflows.PUT("/:id", middlewares.ValidateOnUpdateWorkflow(), workflowController.UpdateWorkflow)
 		}
 
 		users := api.Group("/users")
 		{
 			users.POST("", middlewares.ValidateUser(), userController.SyncUseWrithIDProvider)
 			users.GET("/:stub", userController.GetUserByStub)
+		}
+
+		credentials := api.Group("/credentials")
+		{
+			// credentials.POST("", middlewares.ValidateUser(), userController.SyncUseWrithIDProvider)
+			credentials.GET("/:iduser/:usertoken", authController.VerifyUserTokenForMiddleware, credentialController.GetAllCredentials)
 		}
 
 		dashboard := api.Group("/dashboard")
@@ -38,7 +44,13 @@ func Register(app *gin.Engine, workflowController *controllers.WorkflowControlle
 
 		auth := api.Group("/auth")
 		{
-			auth.GET("/verify/:id", authController.VerifyUserToken)
+			auth.GET("/verify/:usertoken", authController.VerifyUserToken)
+		}
+
+		credentialsGoogle := api.Group("/google")
+		{
+			credentialsGoogle.POST("/credential", middlewares.ValidateOnCreateCredential(), credentialController.CreateCredential)
+			credentialsGoogle.POST("/exchange", middlewares.ValidateOnExchangeCredential(), credentialController.ExchangeGoogleCode)
 		}
 	}
 }

@@ -1,0 +1,1222 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MiniReipaz API",
+    "description": "API for managing workflows, users, dashboards, authentication, and credentials.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.minireipaz.com/support",
+      "email": "support@minireipaz.com"
+    }
+  },
+  "tags": [
+    {
+      "name": "Workflows",
+      "description": "Operations related to workflows."
+    },
+    {
+      "name": "Users",
+      "description": "Operations related to users."
+    },
+    {
+      "name": "Dashboard",
+      "description": "Operations related to user dashboards."
+    },
+    {
+      "name": "Authentication",
+      "description": "Operations related to user authentication."
+    },
+    {
+      "name": "Credentials",
+      "description": "Operations related to user credentials."
+    }
+  ],
+  "paths": {
+    "/api/ping": {
+      "get": {
+        "operationId": "ping",
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Ping the API",
+        "description": "A simple endpoint to check if the API is running.",
+        "responses": {
+          "200": {
+            "description": "API is running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PingResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/workflows": {
+      "post": {
+        "operationId": "createWorkflow",
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Create a new workflow",
+        "description": "Creates a new workflow in the system.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowFrontend"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Workflow created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workflow"
+                }
+              }
+            }
+          },
+          "208": {
+            "description": "Workflow name already exists for this user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflows/{iduser}/{idworkflow}": {
+      "get": {
+        "operationId": "getWorkflow",
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Get a specific workflow",
+        "description": "Retrieves a specific workflow by user ID and workflow ID.",
+        "parameters": [
+          {
+            "name": "iduser",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idworkflow",
+            "in": "path",
+            "required": true,
+            "description": "ID of the workflow",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workflow"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflows/{iduser}": {
+      "get": {
+        "operationId": "getAllWorkflows",
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Get all workflows for a user",
+        "description": "Retrieves all workflows associated with a specific user.",
+        "parameters": [
+          {
+            "name": "iduser",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflows retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Workflow"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users": {
+      "post": {
+        "operationId": "syncUser",
+        "tags": [
+          "Users"
+        ],
+        "summary": "Sync a user with ID provider",
+        "description": "Synchronizes a user with the specified ID provider.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User synchronized successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncUserResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{stub}": {
+      "get": {
+        "operationId": "getUserByStub",
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get user by stub",
+        "description": "Retrieves a user by their unique stub identifier.",
+        "parameters": [
+          {
+            "name": "stub",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard/{iduser}": {
+      "get": {
+        "operationId": "getUserDashboardByID",
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get user dashboard by user ID",
+        "description": "Retrieves the dashboard for a specific user by their ID.",
+        "parameters": [
+          {
+            "name": "iduser",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User dashboard retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoDashboard"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify/{id}": {
+      "get": {
+        "operationId": "verifyUserToken",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Verify user token",
+        "description": "Verifies the user token for authentication.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token verified successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenVerificationResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/google/credential": {
+      "post": {
+        "operationId": "createCredential",
+        "tags": [
+          "Credentials"
+        ],
+        "summary": "Create a new Google credential",
+        "description": "Creates a new credential for Google authentication.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Credential"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Credential created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Credential"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/google/exchange": {
+      "post": {
+        "operationId": "exchangeGoogleCode",
+        "tags": [
+          "Credentials"
+        ],
+        "summary": "Exchange Google code for credentials",
+        "description": "Exchanges a Google authorization code for credentials.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Credentials exchanged successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Credential"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PingResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "pong"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "An error occurred"
+          },
+          "status": {
+            "type": "integer",
+            "example": 500
+          }
+        },
+        "additionalProperties": false
+      },
+      "TokenVerificationResponse": {
+        "type": "object",
+        "properties": {
+          "verified": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowFrontend": {
+        "type": "object",
+        "required": [
+          "WorkflowName",
+          "DirectoryToSave"
+        ],
+        "properties": {
+          "UserID": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "UUID": {
+            "type": "string",
+            "example": "workflow-123"
+          },
+          "WorkflowName": {
+            "type": "string",
+            "example": "Sample Workflow"
+          },
+          "Description": {
+            "type": "string",
+            "example": "This is a sample workflow description."
+          },
+          "DirectoryToSave": {
+            "type": "string",
+            "example": "path/to/save"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "UpdatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-02T12:00:00Z"
+          },
+          "UserToken": {
+            "type": "string",
+            "example": "ya29.a0ARrda..."
+          },
+          "IsActive": {
+            "type": "string",
+            "enum": [
+              "active",
+              "draft",
+              "paused"
+            ],
+            "example": "active"
+          },
+          "WorkflowInit": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "WorkflowCompleted": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "Status": {
+            "type": "string",
+            "enum": [
+              "initial",
+              "pending",
+              "completed",
+              "processing",
+              "failed"
+            ],
+            "example": "initial"
+          },
+          "Duration": {
+            "type": "integer",
+            "example": 120
+          },
+          "Nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            }
+          },
+          "Edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Edge"
+            }
+          },
+          "Viewport": {
+            "$ref": "#/components/schemas/Viewport"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Workflow": {
+        "type": "object",
+        "required": [
+          "UUID",
+          "UserID",
+          "Name",
+          "DirectoryToSave"
+        ],
+        "properties": {
+          "UUID": {
+            "type": "string",
+            "example": "workflow-123"
+          },
+          "UserID": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "Name": {
+            "type": "string",
+            "example": "Sample Workflow"
+          },
+          "Description": {
+            "type": "string",
+            "example": "This is a sample workflow description."
+          },
+          "IsActive": {
+            "type": "string",
+            "enum": [
+              "active",
+              "draft",
+              "paused"
+            ],
+            "example": "active"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "UpdatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-02T12:00:00Z"
+          },
+          "WorkflowInit": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "WorkflowCompleted": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "Status": {
+            "type": "string",
+            "enum": [
+              "initial",
+              "pending",
+              "completed",
+              "processing",
+              "failed"
+            ],
+            "example": "initial"
+          },
+          "DirectoryToSave": {
+            "type": "string",
+            "example": "path/to/save"
+          },
+          "UserToken": {
+            "type": "string",
+            "example": "ya29.a0ARrda..."
+          },
+          "Duration": {
+            "type": "integer",
+            "example": 120
+          },
+          "Nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            }
+          },
+          "Edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Edge"
+            }
+          },
+          "Viewport": {
+            "$ref": "#/components/schemas/Viewport"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncUserRequest": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "user_id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "access_token": {
+            "type": "string",
+            "example": "ya29.a0ARrda...",
+            "maxLength": 1000
+          },
+          "user_id": {
+            "type": "string",
+            "example": "user-456",
+            "maxLength": 50
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "example": 1
+          },
+          "roleId": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "example": 2
+          },
+          "resetPasswordToken": {
+            "type": "string",
+            "example": "reset-token-123"
+          },
+          "resetPasswordTokenSentAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "invitationToken": {
+            "type": "string",
+            "example": "invitation-token-123"
+          },
+          "invitationTokenSentAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "trialExpiryDate": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-02T12:00:00Z"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncUserResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "exist",
+          "created"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": ""
+          },
+          "status": {
+            "type": "integer",
+            "example": 200
+          },
+          "exist": {
+            "type": "boolean",
+            "example": true
+          },
+          "created": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "User": {
+        "type": "object",
+        "required": [
+          "stub",
+          "name"
+        ],
+        "properties": {
+          "stub": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          }
+        },
+        "additionalProperties": false
+      },
+      "InfoDashboard": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "meta": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Meta"
+            }
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardDetails"
+            }
+          },
+          "rows": {
+            "type": "integer",
+            "example": 10
+          },
+          "rows_before_limit_at_least": {
+            "type": "integer",
+            "example": 5
+          },
+          "statistics": {
+            "$ref": "#/components/schemas/Statistics"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DashboardDetails": {
+        "type": "object",
+        "properties": {
+          "total_workflows": {
+            "type": "integer",
+            "example": 100
+          },
+          "successful_workflows": {
+            "type": "integer",
+            "example": 80
+          },
+          "failed_workflows": {
+            "type": "integer",
+            "example": 10
+          },
+          "pending_workflows": {
+            "type": "integer",
+            "example": 10
+          },
+          "recent_workflows": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Meta": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Dashboard Name"
+          },
+          "type": {
+            "type": "string",
+            "example": "user"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Statistics": {
+        "type": "object",
+        "properties": {
+          "elapsed": {
+            "type": "number",
+            "example": 1.5
+          },
+          "rows_read": {
+            "type": "integer",
+            "example": 100
+          },
+          "bytes_read": {
+            "type": "integer",
+            "example": 2048
+          }
+        },
+        "additionalProperties": false
+      },
+      "Dashboard": {
+        "type": "object",
+        "required": [
+          "userId",
+          "widgets"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "widgets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "chart"
+                },
+                "data": {
+                  "type": "object",
+                  "example": {
+                    "value": 100,
+                    "label": "Sample Data"
+                  }
+                }
+              },
+              "required": [
+                "type",
+                "data"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Credential": {
+        "type": "object",
+        "required": [
+          "provider",
+          "token"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "example": "google"
+          },
+          "token": {
+            "type": "string",
+            "example": "ya29.a0ARrda..."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-01T12:00:00Z"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ExchangeRequest": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "4/0AY0e-g..."
+          },
+          "redirectUri": {
+            "type": "string",
+            "example": "http://localhost:8080/callback"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Node": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "example": "node-1"
+          },
+          "Type": {
+            "type": "string",
+            "example": "task"
+          },
+          "Position": {
+            "$ref": "#/components/schemas/Position"
+          },
+          "Data": {
+            "$ref": "#/components/schemas/DataNode"
+          },
+          "Measured": {
+            "$ref": "#/components/schemas/Measured"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Edge": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "example": "edge-1"
+          },
+          "Source": {
+            "type": "string",
+            "example": "node-1"
+          },
+          "Target": {
+            "type": "string",
+            "example": "node-2"
+          },
+          "Type": {
+            "type": "string",
+            "example": "link"
+          },
+          "Animated": {
+            "type": "boolean",
+            "example": true
+          },
+          "Style": {
+            "$ref": "#/components/schemas/Style"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Position": {
+        "type": "object",
+        "properties": {
+          "X": {
+            "type": "number",
+            "example": 100.0
+          },
+          "Y": {
+            "type": "number",
+            "example": 200.0
+          }
+        },
+        "additionalProperties": false
+      },
+      "DataNode": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "example": "data-1"
+          },
+          "Label": {
+            "type": "string",
+            "example": "Data Node"
+          },
+          "Options": {
+            "type": "string",
+            "example": "option1, option2"
+          },
+          "Description": {
+            "type": "string",
+            "example": "This is a data node."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Measured": {
+        "type": "object",
+        "properties": {
+          "Width": {
+            "type": "number",
+            "example": 300.0
+          },
+          "Height": {
+            "type": "number",
+            "example": 150.0
+          }
+        },
+        "additionalProperties": false
+      },
+      "Viewport": {
+        "type": "object",
+        "properties": {
+          "X": {
+            "type": "number",
+            "example": 0.0
+          },
+          "Y": {
+            "type": "number",
+            "example": 0.0
+          },
+          "Zoom": {
+            "type": "number",
+            "example": 1.0
+          }
+        },
+        "additionalProperties": false
+      },
+      "Style": {
+        "type": "object",
+        "properties": {
+          "Stroke": {
+            "type": "string",
+            "example": "#000000"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -2,7 +2,7 @@ package di
 
 import (
 	"minireipaz/pkg/config"
-	"minireipaz/pkg/domain/repos"
+	"minireipaz/pkg/dimodel"
 	"minireipaz/pkg/domain/services"
 	"minireipaz/pkg/infra/brokerclient"
 	"minireipaz/pkg/infra/httpclient"
@@ -10,7 +10,7 @@ import (
 	"minireipaz/pkg/interfaces/controllers"
 )
 
-func InitDependencies() (*controllers.WorkflowController, *repos.AuthService, *controllers.UserController, *controllers.DashboardController, *controllers.AuthController, *controllers.CredentialController) {
+func InitDependencies() *dimodel.Dependencies {
 	configZitadel := config.NewZitaldelEnvConfig()
 	kafkaConfig := config.NewKafkaEnvConfig()
 	clickhouseConfig := config.NewClickhouseEnvConfig()
@@ -57,5 +57,22 @@ func InitDependencies() (*controllers.WorkflowController, *repos.AuthService, *c
 	dashboardService := services.NewDashboardService(dashboardRepo)
 	dashboardController := controllers.NewDashboardController(dashboardService, authService)
 
-	return workflowController, &authService, userController, dashboardController, authController, credentialController
+	actionsHTTPClient := &httpclient.ClientImpl{}
+	actionsRedisClient := redisclient.NewRedisClient()
+	actionsBrokerClient := brokerclient.NewBrokerClient(kafkaConfig)
+	repoActionsRedis := redisclient.NewActionsRepository(actionsRedisClient)
+	repoActionsBroker := brokerclient.NewActionsKafkaRepository(actionsBrokerClient)
+	actionsRepo := httpclient.NewActionsClientHTTP(actionsHTTPClient, clickhouseConfig)
+	actionsService := services.NewActionsService(repoActionsRedis, repoActionsBroker, actionsRepo)
+	actionsController := controllers.NewActionsController(actionsService)
+
+	return &dimodel.Dependencies{
+		WorkflowController:   workflowController,
+		AuthService:          &authService,
+		UserController:       userController,
+		DashboardController:  dashboardController,
+		AuthController:       authController,
+		CredentialController: credentialController,
+		ActionsController:    actionsController,
+	}
 }

@@ -45,9 +45,9 @@ func InitApp() {
 	app = gin.New()
 
 	// Dependency injection and routes setup
-	worflowcontroller, authService, userController, dashboardController, authController, credentialController := di.InitDependencies()
-	middlewares.Register(app, authService)
-	routes.Register(app, worflowcontroller, userController, dashboardController, authController, credentialController)
+	dependencies := di.InitDependencies()
+	middlewares.Register(app, dependencies.AuthService)
+	routes.Register(app, dependencies)
 }
 
 // Handler is the main function that Vercel calls to handle HTTP requests.

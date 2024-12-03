@@ -2,14 +2,15 @@ package routes
 
 import (
 	"minireipaz/pkg/common"
-	"minireipaz/pkg/interfaces/controllers"
+	// "minireipaz/pkg/interfaces/controllers"
+	"minireipaz/pkg/dimodel"
 	"minireipaz/pkg/interfaces/middlewares"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Register(app *gin.Engine, workflowController *controllers.WorkflowController, userController *controllers.UserController, dashboardController *controllers.DashboardController, authController *controllers.AuthController, credentialController *controllers.CredentialController) {
+func Register(app *gin.Engine, dependencies *dimodel.Dependencies) {
 	app.NoRoute(ErrRouter)
 
 	// Routes in groups
@@ -19,38 +20,43 @@ func Register(app *gin.Engine, workflowController *controllers.WorkflowControlle
 
 		workflows := api.Group("/workflows")
 		{
-			workflows.GET("/:iduser/workflow/:idworkflow/:usertoken", authController.VerifyUserTokenForMiddleware, middlewares.ValidateOnGetWorkflow(), workflowController.GetWorkflow)
-			workflows.GET("/:iduser/:usertoken", authController.VerifyUserTokenForMiddleware, middlewares.ValidateOnGetWorkflow(), workflowController.GetAllWorkflows)
-			workflows.POST("", middlewares.ValidateOnCreateWorkflow(), workflowController.CreateWorkflow)
-			workflows.PUT("/:id", middlewares.ValidateOnUpdateWorkflow(), workflowController.UpdateWorkflow)
+			workflows.GET("/:iduser/workflow/:idworkflow/:usertoken", dependencies.AuthController.VerifyUserTokenForMiddleware, middlewares.ValidateOnGetWorkflow(), dependencies.WorkflowController.GetWorkflow)
+			workflows.GET("/:iduser/:usertoken", dependencies.AuthController.VerifyUserTokenForMiddleware, middlewares.ValidateOnGetWorkflow(), dependencies.WorkflowController.GetAllWorkflows)
+			workflows.POST("", middlewares.ValidateOnCreateWorkflow(), dependencies.WorkflowController.CreateWorkflow)
+			workflows.PUT("/:id", middlewares.ValidateOnUpdateWorkflow(), dependencies.WorkflowController.UpdateWorkflow)
 		}
 
 		users := api.Group("/users")
 		{
-			users.POST("", middlewares.ValidateUser(), userController.SyncUseWrithIDProvider)
-			users.GET("/:stub", userController.GetUserByStub)
+			users.POST("", middlewares.ValidateUser(), dependencies.UserController.SyncUseWrithIDProvider)
+			users.GET("/:stub", dependencies.UserController.GetUserByStub)
 		}
 
 		credentials := api.Group("/credentials")
 		{
 			// credentials.POST("", middlewares.ValidateUser(), userController.SyncUseWrithIDProvider)
-			credentials.GET("/:iduser/:usertoken", authController.VerifyUserTokenForMiddleware, credentialController.GetAllCredentials)
+			credentials.GET("/:iduser/:usertoken", dependencies.AuthController.VerifyUserTokenForMiddleware, dependencies.CredentialController.GetAllCredentials)
 		}
 
 		dashboard := api.Group("/dashboard")
 		{
-			dashboard.GET("/:iduser", middlewares.ValidateUserAuth(), dashboardController.GetUserDashboardByID)
+			dashboard.GET("/:iduser", middlewares.ValidateUserAuth(), dependencies.DashboardController.GetUserDashboardByID)
 		}
 
 		auth := api.Group("/auth")
 		{
-			auth.GET("/verify/:usertoken", authController.VerifyUserToken)
+			auth.GET("/verify/:usertoken", dependencies.AuthController.VerifyUserToken)
 		}
 
 		credentialsGoogle := api.Group("/google")
 		{
-			credentialsGoogle.POST("/credential", middlewares.ValidateOnCreateCredential(), credentialController.CreateCredential)
-			credentialsGoogle.POST("/exchange", middlewares.ValidateOnExchangeCredential(), credentialController.ExchangeGoogleCode)
+			credentialsGoogle.POST("/credential", middlewares.ValidateOnCreateCredential(), dependencies.CredentialController.CreateCredential)
+			credentialsGoogle.POST("/exchange", middlewares.ValidateOnExchangeCredential(), dependencies.CredentialController.ExchangeGoogleCode)
+		}
+
+		actions := api.Group("/actions")
+		{
+			actions.POST("/google/sheets", middlewares.ValidateGetGoogleSheet(), dependencies.ActionsController.GetGoogleSheetByID)
 		}
 	}
 }

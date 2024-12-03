@@ -46,12 +46,20 @@ func (r *WorkflowRepository) Remove(workflow *models.Workflow) bool {
 }
 
 func (r *WorkflowRepository) ValidateWorkflowGlobalUUID(uuid *string) bool {
-	exist := r.redisClient.Hexists("workflows:all", *uuid)
+	exist, err := r.redisClient.Hexists("workflows:all", *uuid)
+	if err != nil {
+		log.Printf("ERROR | Redis HExists error: %v", err)
+		return true
+	}
 	return exist
 }
 
 func (r *WorkflowRepository) ValidateUserWorkflowUUID(userID, name *string) bool {
-	exist := r.redisClient.Hexists(fmt.Sprintf("users:%s", *userID), *name)
+	exist, err := r.redisClient.Hexists(fmt.Sprintf("users:%s", *userID), *name)
+	if err != nil {
+		log.Printf("ERROR | Redis HExists error: %v", err)
+		return true
+	}
 	return exist
 }
 

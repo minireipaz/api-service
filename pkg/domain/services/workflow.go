@@ -34,7 +34,7 @@ func (s *WorkflowServiceImpl) retriesCreateWorkflow(workflow *models.Workflow) (
 	}
 
 	lockKey := "lock:" + workflow.UUID
-	acquired, err := s.redisRepo.AcquireLock(lockKey, "", 30*time.Second)
+	acquired, err := s.redisRepo.AcquireLock(lockKey, "_", models.MaxTimeForLocks)
 	if err != nil {
 		log.Printf("ERROR | acquiring lock: %v", err)
 		return false, false
@@ -46,10 +46,10 @@ func (s *WorkflowServiceImpl) retriesCreateWorkflow(workflow *models.Workflow) (
 
 	defer s.redisRepo.RemoveLock(lockKey) // in case
 
-	workflow.CreatedAt = time.Now().Format(models.LayoutTimestamp) // right now not controlled by db
-	workflow.UpdatedAt = workflow.CreatedAt                        // right now not controlled by db
-	workflow.IsActive = models.Active                              // right now not controlled by db
-	workflow.Status = models.Initial                               // right now not controlled by db
+	workflow.CreatedAt = time.Now().UTC().Format(models.LayoutTimestamp) // right now not controlled by db
+	workflow.UpdatedAt = workflow.CreatedAt                              // right now not controlled by db
+	workflow.IsActive = models.Active                                    // right now not controlled by db
+	workflow.Status = models.Initial                                     // right now not controlled by db
 	workflow.WorkflowInit = time.Time{}
 	workflow.WorkflowCompleted = time.Time{}
 
@@ -224,7 +224,7 @@ func (s *WorkflowServiceImpl) retriesUpdateWorkflow(workflow *models.Workflow) (
 
 	defer s.redisRepo.RemoveLock(lockKey) // in case
 
-	workflow.UpdatedAt = time.Now().Format(models.LayoutTimestamp) // right now not controlled by db
+	workflow.UpdatedAt = time.Now().UTC().Format(models.LayoutTimestamp) // right now not controlled by db
 
 	updated = s.brokerRepo.Update(workflow)
 	if !updated {

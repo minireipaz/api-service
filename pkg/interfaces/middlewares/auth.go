@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"log"
 	"minireipaz/pkg/domain/models"
 	"minireipaz/pkg/domain/repos"
 
@@ -48,7 +47,6 @@ func AuthMiddleware(authService *repos.AuthService) gin.HandlerFunc {
 // TODO: can be expired btw rightnow not rotated
 func verifyServiceUserToken(authService repos.AuthService, token string) (bool, error) {
 	isValid, err := authService.VerifyServiceUserToken(token)
-	log.Printf("service user is %v", isValid)
 	if err != nil {
 		return false, err
 	}

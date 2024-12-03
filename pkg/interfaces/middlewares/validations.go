@@ -143,3 +143,16 @@ func ValidateOnExchangeCredential() gin.HandlerFunc {
 		ctx.Next()
 	}
 }
+
+func ValidateGetGoogleSheet() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var currentReq models.RequestGoogleAction
+		if err := ctx.ShouldBindBodyWithJSON(&currentReq); err != nil {
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON, http.StatusBadRequest))
+			ctx.Abort()
+			return
+		}
+		ctx.Set(models.ActionGoogleKey, currentReq)
+		ctx.Next()
+	}
+}

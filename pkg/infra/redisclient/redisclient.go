@@ -16,6 +16,8 @@ type RedisClient struct {
 	Ctx    context.Context
 }
 
+var ErrActionExists = fmt.Errorf("action already exists")
+
 const (
 	operationSET    = "set"
 	operationREMOVE = "remove"
@@ -61,8 +63,8 @@ func (r *RedisClient) Hget(key string, field string) error {
 	return r.Client.HGet(r.Ctx, key, field).Err()
 }
 
-func (r *RedisClient) Hexists(key string, field string) bool {
-	return r.Client.HExists(r.Ctx, key, field).Val()
+func (r *RedisClient) Hexists(key string, field string) (bool, error) {
+	return r.Client.HExists(r.Ctx, key, field).Result()
 }
 
 func (r *RedisClient) Exists(key string) (int64, error) {
@@ -262,4 +264,46 @@ func (r *RedisClient) AcquireLock(key, value string, expiration time.Duration) (
 func (r *RedisClient) RemoveLock(key string) (int64, error) {
 	result, err := r.Client.Del(r.Ctx, key).Result()
 	return result, err
+}
+
+func (r *RedisClient) Hdel(key string, field string) (int64, error) {
+	result, err := r.Client.HDel(r.Ctx, key, field).Result()
+	return result, err
+}
+
+func (r *RedisClient) WatchAndExecute(ctx context.Context, keys []string, txFunc func(tx *redis.Tx) error) error {
+	return r.Client.Watch(ctx, txFunc, keys...)
+}
+
+func (r *RedisClient) ExecuteTransaction(ctx context.Context, keys []string, txFunc func(tx *redis.Tx) error) error {
+	return r.WatchAndExecute(ctx, keys, txFunc)
+}
+
+func (r *RedisClient) SetAction(ctx context.Context, newAction *models.RequestGoogleAction, txf func(tx *redis.Tx) error) (inserted bool, existed bool, err error) {
+	if newAction.ActionID == "" {
+		return false, false, fmt.Errorf("ActionID is required")
+	}
+	if newAction.RequestID == "" {
+		return false, false, fmt.Errorf("RequestID is required")
+	}
+	lockKey := fmt.Sprintf("lock:%s", newAction.ActionID)
+	// key := "actions:all"
+	// field := newAction.ActionID
+	// value := newAction.Sub
+
+	err = r.ExecuteTransaction(ctx, []string{ActionsGlobalAll, lockKey}, txf)
+	if err != nil {
+		if err == redis.TxFailedErr {
+			log.Println("Concurrent transaction error detected.")
+			return false, true, nil
+		}
+		log.Printf("Error in Redis transaction: %v", err)
+		return false, false, err
+	}
+
+	return true, false, nil
+}
+
+func (r *RedisClient) HSetNX(key string, field *string, value string) (bool, error) {
+	return r.Client.HSetNX(r.Ctx, key, *field, value).Result()
 }

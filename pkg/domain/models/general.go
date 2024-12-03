@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	LayoutTimestamp       = time.RFC3339 // format "2006-01-02T15:04:05Z07:00"
@@ -12,9 +14,11 @@ const (
 	MaxRowsFromDB         = 999
 	MaxTimeoutContext     = 60 * time.Second
 	TimeDriftForExpire    = 600 // 10 minutes
+	MaxTimeForLocks       = 30 * time.Second
 )
 
 const (
 	CredentialCreateContextKey   = "createcredential"
 	CredentialExchangeContextKey = "exchangecredential"
+	ActionGoogleKey              = "actiongoogle"
 )

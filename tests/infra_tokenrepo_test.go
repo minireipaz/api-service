@@ -74,7 +74,7 @@ func TestTokenRepository_GetToken(t *testing.T) {
 		{
 			name: "token exists in memory and is valid",
 			setup: func() {
-				tokenRepo.SaveToken(&validToken, &secondsExpired)
+				tokenRepo.SaveServiceUserToken(&validToken, &secondsExpired)
 			},
 			expectedRes: &tokenrepo.Token{
 				ObtainedAt:  time.Now().UTC(),
@@ -88,7 +88,7 @@ func TestTokenRepository_GetToken(t *testing.T) {
 			name: "token exists in memory but is expired",
 			setup: func() {
 				// Guardar un token expirado en memoria
-				tokenRepo.SaveToken(&expiredToken, &secondsExpired)
+				tokenRepo.SaveServiceUserToken(&expiredToken, &secondsExpired)
 			},
 			expectedRes: nil,
 			expectedErr: "token expired",
@@ -123,7 +123,7 @@ func TestTokenRepository_GetToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setup()
 
-			token, err := tokenRepo.GetToken()
+			token, err := tokenRepo.GetServiceUserToken()
 
 			if tt.expectedErr != "" {
 				assert.Error(t, err)
@@ -179,7 +179,7 @@ func TestTokenRepository_SaveToken(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setup()
-			err := tokenRepo.SaveToken(tt.token.AccessToken, &tt.token.ExpiresIn)
+			err := tokenRepo.SaveServiceUserToken(tt.token.AccessToken, &tt.token.ExpiresIn)
 
 			if tt.expectedErr != "" {
 				assert.Error(t, err)

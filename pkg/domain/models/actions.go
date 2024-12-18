@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type RequestGoogleAction struct {
 	ActionID       string  `json:"actionid"`
 	RequestID      string  `json:"requestid"`
@@ -26,7 +28,13 @@ type ActionData struct {
 }
 
 type ResponseGetGoogleSheetByID struct {
-	Status int        `json:"status"`
-	Error  string     `json:"error"`
-	Action ActionData `json:"data"`
+	Status int    `json:"status"`
+	Error  string `json:"error"`
+	Data   string `json:"data"`
+}
+
+type ActionsCommand struct {
+	Actions   *RequestGoogleAction `json:"actions"`
+	Type      *string              `json:"type,omitempty"`
+	Timestamp *time.Time           `json:"timestamp,omitempty"`
 }

@@ -1,8 +1,10 @@
 package httpclient
 
 import (
+	"encoding/json"
 	"minireipaz/pkg/config"
 	"minireipaz/pkg/domain/models"
+	"time"
 )
 
 type ActionsHTTPRepository struct {
@@ -19,6 +21,37 @@ func NewActionsClientHTTP(client HTTPClient, clickhouseConfig config.ClickhouseC
 	}
 }
 
-func (a *ActionsHTTPRepository) GetGoogleSheetByID(_ models.RequestGoogleAction) string {
-	return ""
+func (a *ActionsHTTPRepository) SendAction(newAction *models.RequestGoogleAction, actionUserToken *string) (sended bool) {
+	now := time.Now().UTC()
+	typeCommand := models.CommandTypeCreate
+	command := models.ActionsCommand{
+		Actions:   newAction,
+		Type:      &typeCommand,
+		Timestamp: &now,
+	}
+
+	response := a.PublishCommand(&command, actionUserToken)
+	if response == nil {
+		return false
+	}
+	return *response != ""
+}
+
+func (a *ActionsHTTPRepository) PublishCommand(data *models.ActionsCommand, serviceUser *string) *string {
+	url, err := getActionsURL("/api/actions/google/sheets")
+	if err != nil {
+		return nil
+	}
+
+	body, err := a.client.DoRequest("POST", url, *serviceUser, data)
+	if err != nil {
+		return nil
+	}
+
+	var response string
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil
+	}
+
+	return &response
 }

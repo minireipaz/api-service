@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"minireipaz/pkg/domain/models"
 	"minireipaz/pkg/domain/repos"
 	"net/http"
@@ -10,15 +11,24 @@ import (
 
 type ActionsController struct {
 	actionsService repos.ActionsService
+	authService    repos.AuthService
 }
 
-func NewActionsController(newActionsService repos.ActionsService) *ActionsController {
-	return &ActionsController{actionsService: newActionsService}
+func NewActionsController(newActionsService repos.ActionsService, newAuthServ repos.AuthService) *ActionsController {
+	return &ActionsController{actionsService: newActionsService, authService: newAuthServ}
 }
 
 func (a *ActionsController) GetGoogleSheetByID(ctx *gin.Context) {
 	newAction := ctx.MustGet(models.ActionGoogleKey).(models.RequestGoogleAction)
-	created, exist, actionsData := a.actionsService.GetGoogleSheetByID(newAction)
+	actionUserToken, err := a.authService.GetActionUserAccessToken()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":  fmt.Sprintf("Failed to authenticate: %v", err),
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+	created, exist, actionID := a.actionsService.GetGoogleSheetByID(newAction, actionUserToken)
 	if !created && !exist {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":  models.WorkflowNameNotGenerate,
@@ -27,10 +37,10 @@ func (a *ActionsController) GetGoogleSheetByID(ctx *gin.Context) {
 		return
 	}
 
-	if exist {
+	if exist { // preexist
 		ctx.JSON(http.StatusAlreadyReported, gin.H{
-			"error":  models.WorkflowNameExist,
-			"status": http.StatusAlreadyReported,
+			"error":  models.WorkflowNameNotGenerate,
+			"status": http.StatusInternalServerError,
 		})
 		return
 	}
@@ -38,6 +48,6 @@ func (a *ActionsController) GetGoogleSheetByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, models.ResponseGetGoogleSheetByID{
 		Status: http.StatusOK,
 		Error:  "",
-		Action: *actionsData,
+		Data:   *actionID,
 	})
 }

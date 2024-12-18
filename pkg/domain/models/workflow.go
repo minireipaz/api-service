@@ -160,6 +160,7 @@ type DataNode struct {
 	NodeID         string                  `json:"nodeid,omitempty"`
 	CredentialData RequestCreateCredential `json:"credential"`
 	Type           string                  `json:"type"`
+	ContentData    FormData                `json:"formdata"`
 }
 
 type Measured struct {
@@ -176,6 +177,15 @@ type Viewport struct {
 	X    float64 `json:"x,omitempty"`
 	Y    float64 `json:"y,omitempty"`
 	Zoom float64 `json:"zoom,omitempty"`
+}
+
+type FormData struct {
+	Pollmode       string `json:"pollmode"`
+	Selectdocument string `json:"selectdocument"`
+	Document       string `json:"document"`
+	Selectsheet    string `json:"selectsheet"`
+	Sheet          string `json:"sheet"`
+	Operation      string `json:"operation"`
 }
 
 type InfoWorkflow struct {

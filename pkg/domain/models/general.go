@@ -12,13 +12,17 @@ const (
 	SleepOffset           = 50 * time.Millisecond  // offset
 	SaveOffset            = 10
 	MaxRowsFromDB         = 999
-	MaxTimeoutContext     = 60 * time.Second
+	MaxTimeoutContext     = 600 * time.Second
 	TimeDriftForExpire    = 600 // 10 minutes
 	MaxTimeForLocks       = 30 * time.Second
+	TimeoutRequest        = 5 * time.Minute
 )
 
 const (
 	CredentialCreateContextKey   = "createcredential"
 	CredentialExchangeContextKey = "exchangecredential"
 	ActionGoogleKey              = "actiongoogle"
+	CommandTypeCreate            = "create"
+	CommandTypeUpdate            = "update"
+	CommandTypeDelete            = "delete"
 )

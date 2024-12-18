@@ -58,6 +58,7 @@ type DataCredential struct {
 	Scopes       []string `json:"scopes,omitempty"`
 	State        string   `json:"state,omitempty"`
 	Code         string   `json:"code"`
+	CodeVerifier string   `json:"codeverifier"`
 	Token        string   `json:"token,omitempty"`
 	TokenRefresh string   `json:"tokenrefresh,omitempty"`
 }

@@ -48,7 +48,7 @@ func (c *CredentialKafkaRepository) credentialToPayload(stateInfo *models.Reques
 		Time: *expire,
 	}
 
-	idCurrent := fmt.Sprintf("credential_%s_%s_%s_%s", stateInfo.Sub, stateInfo.WorkflowID, stateInfo.NodeID, stateInfo.Type)
+	// idCurrent := fmt.Sprintf("credential_%s_%s_%s_%s", stateInfo.Sub, stateInfo.WorkflowID, stateInfo.NodeID, stateInfo.Type)
 	stateInfo.Data.Token = *token
 	stateInfo.Data.TokenRefresh = *refresh
 	stateInfo.ExpiresAt = &customExpire
@@ -64,7 +64,7 @@ func (c *CredentialKafkaRepository) credentialToPayload(stateInfo *models.Reques
 		log.Printf("ERROR | Cannot convert to json %v", stateInfo.Data)
 		return nil
 	}
-	stateInfo.ID = idCurrent
+	// stateInfo.ID = idCurrent
 
 	payload := &models.CredentialPayload{
 		RequestExchangeCredential: *stateInfo,

@@ -25,7 +25,7 @@ type ZitadelClient struct {
 func NewZitadelClient(apiURL, userID, privateKey, keyID, projectID, clientID string) *ZitadelClient {
 	return &ZitadelClient{
 		apiURL:     apiURL,
-		ClientHTTP: &ClientImpl{}, // &http.Client{Timeout: 10 * time.Second},
+		ClientHTTP: NewClientImpl(models.TimeoutRequest), // &http.Client{Timeout: 10 * time.Second},
 		userID:     userID,
 		privateKey: []byte(privateKey),
 		keyID:      keyID,
@@ -98,7 +98,6 @@ func (z *ZitadelClient) ValidateUserToken(userToken, jwtToken string) (bool, int
 }
 
 func (z *ZitadelClient) ValidateServiceUserAccessToken(serviceUserToken, jwtToken *string) (bool, error) {
-	// data := fmt.Sprintf("scope=urn:zitadel:iam:org:project:id:%s:aud&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=%s&token=%s", z.projectID, *jwtToken, *serviceUserToken)
 	data := fmt.Sprintf("client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=%s&token=%s", *jwtToken, *serviceUserToken)
 	req, err := http.NewRequest("POST", z.apiURL+"/oauth/v2/introspect", strings.NewReader(data))
 	if err != nil {

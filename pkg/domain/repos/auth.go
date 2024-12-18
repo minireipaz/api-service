@@ -10,6 +10,7 @@ type AuthService interface {
 	GetCachedServiceUserAccessToken() *string
 	VerifyServiceUserToken(token string) (isOk bool, err error)
 	VerifyUserToken(userToken string) (bool, bool)
+	GetActionUserAccessToken() (*string, error)
 }
 
 type AuthRepository interface {
@@ -32,6 +33,7 @@ type ZitadelClient interface {
 }
 
 type TokenRepository interface {
-	SaveToken(accessToken *string, expiresIn *time.Duration) error
-	GetToken() (*tokenrepo.Token, error)
+	SaveServiceUserToken(accessToken *string, expiresIn *time.Duration) error
+	GetServiceUserToken() (*tokenrepo.Token, error)
+	GetActionUserToken() (*tokenrepo.Token, error)
 }

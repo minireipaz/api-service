@@ -6,6 +6,7 @@ import (
 	"minireipaz/pkg/config"
 	"minireipaz/pkg/domain/models"
 	"minireipaz/pkg/domain/repos"
+	"minireipaz/pkg/infra/tokenrepo"
 	"time"
 )
 
@@ -35,7 +36,7 @@ func (s *AuthServiceImpl) GenerateAccessToken() (*string, error) {
 		return nil, fmt.Errorf("ERROR | Cannot acces to ACCESS token %v", err)
 	}
 
-	err = s.tokenRepo.SaveToken(accessToken, &expiresIn)
+	err = s.tokenRepo.SaveServiceUserToken(accessToken, &expiresIn)
 	if err != nil {
 		log.Printf("ERROR | Failed to save token, %v", err)
 		return nil, fmt.Errorf("ERROR | Failed to save token, %v", err)
@@ -45,7 +46,7 @@ func (s *AuthServiceImpl) GenerateAccessToken() (*string, error) {
 }
 
 func (s *AuthServiceImpl) GetCachedServiceUserAccessToken() *string {
-	existingToken, err := s.tokenRepo.GetToken()
+	existingToken, err := s.tokenRepo.GetServiceUserToken()
 	if err != nil && (err.Error() == "token expired" || err.Error() == "no token found in redis") {
 		return nil
 	}
@@ -127,4 +128,69 @@ func (s *AuthServiceImpl) VerifyUserToken(userToken string) (bool, bool) {
 	// drift for jwt expire early for 10 minutes
 	isExpired := (time.Now().UTC().Unix() - models.TimeDriftForExpire) > expire
 	return isValid, isExpired
+}
+
+func (s *AuthServiceImpl) GetActionUserAccessToken() (*string, error) {
+	actionUserAccessToken, err := s.getActionUserAccessToken()
+	if err != nil || actionUserAccessToken == nil {
+		return nil, fmt.Errorf("authentication failed")
+	}
+	return actionUserAccessToken, nil
+}
+
+// TODO: better logic ---------------
+func (s *AuthServiceImpl) getActionUserAccessToken() (*string, error) {
+	existingToken, err := s.tokenRepo.GetActionUserToken()
+	if err != nil {
+		log.Printf("ERROR | getaccesstoken %v", err)
+		// TODO: better control in case cannot get token auth
+		if err.Error() == "no token found" {
+			log.Printf("WARN | no token found, generating new one")
+			existingToken, err = s.GenerateNewActionUserToken() // better sync with external service designed to auth
+			if err != nil {
+				log.Printf("WARN | failed to generate a new one token, try to read a new one")
+				existingToken, err = s.tokenRepo.GetServiceUserToken()
+			}
+		}
+	}
+
+	if err != nil {
+		log.Panicf("ERROR | Cannot get token to auth")
+		return nil, fmt.Errorf("ERROR | Cannot get token to auth")
+	}
+
+	if existingToken == nil {
+		return nil, fmt.Errorf("not exist")
+	}
+	// TODO: better control in case cannot get token auth
+	return existingToken.AccessToken, nil
+}
+
+// TODO: not implemented
+func (s *AuthServiceImpl) GenerateNewActionUserToken() (*tokenrepo.Token, error) {
+	return nil, nil
+	// jwt, err := a.jwtGenerator.GenerateServiceUserJWT(time.Hour)
+	// if err != nil {
+	// 	log.Panicf("ERROR | Cannot generate JWT %v", err)
+	// }
+
+	// accessToken, expiresIn, err := a.zitadelClient.GetServiceUserAccessToken(jwt)
+	// if err != nil {
+	// 	log.Printf("ERROR | Cannot acces to ACCESS token %v", err)
+	// 	return nil, fmt.Errorf("ERROR | Cannot acces to ACCESS token %v", err)
+	// }
+
+	// token := &tokenrepo.Token{
+	// 	AccessToken: accessToken,
+	// 	ExpiresIn:   expiresIn - models.SaveOffset, // -10 seconds
+	// 	ObtainedAt:  time.Now(),
+	// }
+
+	// err = a.tokenRepo.SaveActionUserToken(token)
+	// if err != nil {
+	// 	log.Printf("ERROR | Failed to save token, %v", err)
+	// 	return nil, fmt.Errorf("ERROR | Failed to save token, %v", err)
+	// }
+
+	// return token, nil
 }

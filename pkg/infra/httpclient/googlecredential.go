@@ -28,6 +28,7 @@ func (c *CredentialGoogleHTTPRepository) GenerateAuthURL(credential *models.Requ
 	credential.Timestamp = time.Now().UTC().Unix()
 	credential.Data.Scopes = []string{"https://www.googleapis.com/auth/spreadsheets.readonly"}
 	credential.Data.Code = codeVerifier
+	credential.Data.CodeVerifier = codeVerifier
 	credential.Data.OAuthURL = google.Endpoint.AuthURL
 	stateJSON, _ := json.Marshal(credential)
 	stateToken := base64.URLEncoding.EncodeToString(stateJSON)
@@ -42,7 +43,8 @@ func (c *CredentialGoogleHTTPRepository) GenerateAuthURL(credential *models.Requ
 
 	opts := []oauth2.AuthCodeOption{
 		oauth2.AccessTypeOffline,
-		oauth2.S256ChallengeOption(codeVerifier),
+		oauth2.ApprovalForce,
+		oauth2.S256ChallengeOption(codeVerifier), // PKCE challenge
 	}
 
 	url := googleOauthConfig.AuthCodeURL(
@@ -71,21 +73,23 @@ func (c *CredentialGoogleHTTPRepository) ExchangeGoogleCredential(currentCredent
 	// 	return nil, nil, nil, nil, fmt.Errorf("ERROR | state token expired")
 	// }
 
+	stateInfo.Data.Code = currentCredential.Data.Code
 	var googleOauthConfig = oauth2.Config{
 		RedirectURL:  stateInfo.Data.RedirectURL,
 		ClientID:     stateInfo.Data.ClientID,
 		ClientSecret: stateInfo.Data.ClientSecret,
 		Scopes:       stateInfo.Data.Scopes,
-		Endpoint:     google.Endpoint,
+		Endpoint:     google.Endpoint, // endpoint uri added to DATA?
 	}
 
 	opts := []oauth2.AuthCodeOption{
-		oauth2.VerifierOption(stateInfo.Data.Code), // PKCE verification
+		oauth2.AccessTypeOffline,
+		oauth2.VerifierOption(stateInfo.Data.CodeVerifier), // PKCE verification
 	}
-
+	// token expiry in 1hr
 	token, err := googleOauthConfig.Exchange(context.Background(), currentCredential.Data.Code, opts...)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("ERROR | cannot exchange code: %v", err)
-	} // expiry in 1hr
+	}
 	return &token.AccessToken, &token.RefreshToken, &token.Expiry, stateInfo, nil
 }

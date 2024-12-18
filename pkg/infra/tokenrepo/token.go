@@ -20,31 +20,34 @@ type Token struct {
 }
 
 type TokenRepository struct {
-	mu          sync.RWMutex
-	redisClient *redisclient.RedisClient
-	key         string
-	token       *Token
+	mu               sync.RWMutex
+	redisClient      *redisclient.RedisClient
+	keyServiceUser   string
+	keyActionUser    string
+	tokenServiceUser *Token
+	tokenActionUser  *Token
 }
 
 func NewTokenRepository(redisClient *redisclient.RedisClient) *TokenRepository {
 	return &TokenRepository{
-		redisClient: redisClient,
-		key:         "serviceuser:token",
+		redisClient:    redisClient,
+		keyServiceUser: "serviceuser:token",
+		keyActionUser:  "actionuser:token",
 	}
 }
 
-func (r *TokenRepository) GetToken() (*Token, error) {
+func (r *TokenRepository) GetServiceUserToken() (*Token, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	if r.token != nil {
-		if r.isExpired(*r.token) {
+	if r.tokenServiceUser != nil {
+		if r.isExpired(*r.tokenServiceUser) {
 			return nil, fmt.Errorf("token expired")
 		}
-		return r.token, nil
+		return r.tokenServiceUser, nil
 	}
 
-	data, err := r.redisClient.Get(r.key)
+	data, err := r.redisClient.Get(r.keyServiceUser)
 	if err != nil {
 		return nil, err
 	}
@@ -62,8 +65,8 @@ func (r *TokenRepository) GetToken() (*Token, error) {
 		return nil, fmt.Errorf("token expired")
 	}
 
-	r.token = &token
-	return r.token, nil
+	r.tokenServiceUser = &token
+	return r.tokenServiceUser, nil
 }
 
 func (r *TokenRepository) isExpired(token Token) bool {
@@ -75,7 +78,7 @@ func (r *TokenRepository) isExpired(token Token) bool {
 	return false
 }
 
-func (r *TokenRepository) SaveToken(accessToken *string, expiresIn *time.Duration) error {
+func (r *TokenRepository) SaveServiceUserToken(accessToken *string, expiresIn *time.Duration) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -90,9 +93,9 @@ func (r *TokenRepository) SaveToken(accessToken *string, expiresIn *time.Duratio
 		return err
 	}
 
-	err = r.redisClient.WatchToken(string(data), r.key, (token.ExpiresIn)*time.Second)
+	err = r.redisClient.WatchToken(string(data), r.keyServiceUser, (token.ExpiresIn)*time.Second)
 	if err == nil {
-		r.token = &token
+		r.tokenServiceUser = &token
 		return nil
 	}
 
@@ -103,5 +106,38 @@ func (r *TokenRepository) SaveToken(accessToken *string, expiresIn *time.Duratio
 func (r *TokenRepository) SetToken(token *Token) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.token = token
+	r.tokenServiceUser = token
+}
+
+func (r *TokenRepository) GetActionUserToken() (*Token, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if r.tokenActionUser != nil {
+		if r.isExpired(*r.tokenActionUser) {
+			return nil, fmt.Errorf("token expired")
+		}
+		return r.tokenActionUser, nil
+	}
+
+	data, err := r.redisClient.Get(r.keyActionUser)
+	if err != nil {
+		return nil, err
+	}
+	if data == "" { // Not exist key in redis
+		return nil, fmt.Errorf("no token found in redis")
+	}
+
+	var token Token
+	err = json.Unmarshal([]byte(data), &token)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.isExpired(token) {
+		return nil, fmt.Errorf("token expired")
+	}
+
+	r.tokenActionUser = &token
+	return r.tokenActionUser, nil
 }

@@ -22,20 +22,20 @@ const (
 )
 
 type RequestExchangeCredential struct {
-	ID         string         `json:"id,omitempty" `
-	Sub        string         `json:"sub,omitempty"`
-	Name       string         `json:"name,omitempty"`
-	Type       string         `json:"type,omitempty"`
-	WorkflowID string         `json:"workflowid,omitempty"`
-	NodeID     string         `json:"nodeid,omitempty"`
-	CreatedAt  *CustomTime    `json:"created_at,omitempty"`
-	UpdatedAt  *CustomTime    `json:"updated_at,omitempty"`
-	LastUsedAt *CustomTime    `json:"last_used_at,omitempty"`
 	RevokedAt  *CustomTime    `json:"revoked_at,omitempty"`
+	LastUsedAt *CustomTime    `json:"last_used_at,omitempty"`
+	ExpiresAt  *CustomTime    `json:"expires_at,omitempty"`
+	UpdatedAt  *CustomTime    `json:"updated_at,omitempty"`
+	CreatedAt  *CustomTime    `json:"created_at,omitempty"`
+	NodeID     string         `json:"nodeid,omitempty"`
+	Sub        string         `json:"sub,omitempty"`
+	WorkflowID string         `json:"workflowid,omitempty"`
+	ID         string         `json:"id,omitempty" `
+	Type       string         `json:"type,omitempty"`
+	Name       string         `json:"name,omitempty"`
+	Data       DataCredential `json:"data,omitempty"`
 	Version    uint32         `json:"version,omitempty"`
 	IsActive   bool           `json:"is_active,omitempty"`
-	ExpiresAt  *CustomTime    `json:"expires_at,omitempty"`
-	Data       DataCredential `json:"data,omitempty"`
 }
 
 type RequestCreateCredential struct {
@@ -43,10 +43,10 @@ type RequestCreateCredential struct {
 	Sub        string         `json:"sub,omitempty"`
 	Name       string         `json:"name,omitempty" `
 	Type       string         `json:"type,omitempty" `
-	Timestamp  int64          `json:"timestamp,omitempty"`
 	WorkflowID string         `json:"workflowid,omitempty"`
 	NodeID     string         `json:"nodeid,omitempty"`
 	Data       DataCredential `json:"data" binding:"required"`
+	Timestamp  int64          `json:"timestamp,omitempty"`
 }
 
 type DataCredential struct {
@@ -55,37 +55,37 @@ type DataCredential struct {
 	ClientSecret string   `json:"clientSecret" `
 	RedirectURL  string   `json:"redirectURL" `
 	OAuthURL     string   `json:"oauthurl,omitempty"`
-	Scopes       []string `json:"scopes,omitempty"`
 	State        string   `json:"state,omitempty"`
 	Code         string   `json:"code"`
 	CodeVerifier string   `json:"codeverifier"`
 	Token        string   `json:"token,omitempty"`
 	TokenRefresh string   `json:"tokenrefresh,omitempty"`
+	Scopes       []string `json:"scopes,omitempty"`
 }
 
 type ResponseCreateCredential struct {
 	Data   string `json:"data"`
-	Status int    `json:"status"`
 	Error  string `json:"error"`
+	Status int    `json:"status"`
 }
 
 type ResponseGetCredential struct {
-	Status      int                          `json:"status"`
-	Error       string                       `json:"error"`
 	Credentials *[]RequestExchangeCredential `json:"credentials"`
+	Error       string                       `json:"error"`
+	Status      int                          `json:"status"`
 }
 
 type CredentialPayload struct {
-	RequestExchangeCredential
 	Data string `json:"data,omitempty"`
+	RequestExchangeCredential
 }
 
 type InfoCredentials struct {
-	Meta                   []Meta                       `json:"meta,omitempty"`
 	Data                   *[]RequestExchangeCredential `json:"data,omitempty"`
 	Rows                   *int64                       `json:"rows,omitempty"`
 	RowsBeforeLimitAtLeast *int64                       `json:"rows_before_limit_at_least,omitempty"`
 	Statistics             *Statistics                  `json:"statistics,omitempty"`
+	Meta                   []Meta                       `json:"meta,omitempty"`
 }
 
 func (dc *RequestExchangeCredential) UnmarshalJSON(data []byte) error {

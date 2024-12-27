@@ -24,23 +24,22 @@ const (
 )
 
 type WorkflowFrontend struct {
-	UserID          string `json:"user_id,omitempty"`
-	UUID            string `json:"id,omitempty"`
-	WorkflowName    string `json:"name" binding:"required,alphanum,max=255"`
-	Description     string `json:"description,omitempty"`
-	DirectoryToSave string `json:"directory_to_save" binding:"required,alphanum,max=255"`
-	CreatedAt       string `json:"created_at,omitempty"`
-	UpdatedAt       string `json:"updated_at,omitempty"`
-	//
-	UserToken         string     `json:"access_token,omitempty"`
-	IsActive          IsActive   `json:"is_active,omitempty"` // Enum8('active' = 1, 'draft' = 2, 'paused' = 3) DEFAULT 'active'
 	WorkflowInit      CustomTime `json:"workflow_init,omitempty"`
 	WorkflowCompleted CustomTime `json:"workflow_completed,omitempty"`
-	Status            *Status    `json:"status,omitempty"`
+	Viewport          *Viewport  `json:"viewport,omitempty"`
 	Duration          *int64     `json:"duration,omitempty"`
+	Status            *Status    `json:"status,omitempty"`
+	DirectoryToSave   string     `json:"directory_to_save" binding:"required,alphanum,max=255"`
+	UpdatedAt         string     `json:"updated_at,omitempty"`
+	UserToken         string     `json:"access_token,omitempty"`
+	CreatedAt         string     `json:"created_at,omitempty"`
+	UserID            string     `json:"user_id,omitempty"`
+	Description       string     `json:"description,omitempty"`
+	WorkflowName      string     `json:"name" binding:"required,alphanum,max=255"`
+	UUID              string     `json:"id,omitempty"`
 	Nodes             []Node     `json:"nodes,omitempty"`
 	Edges             []Edge     `json:"edges,omitempty"`
-	Viewport          *Viewport  `json:"viewport,omitempty"`
+	IsActive          IsActive   `json:"is_active,omitempty"`
 }
 
 type IsActive uint8
@@ -62,22 +61,22 @@ const (
 )
 
 type Workflow struct {
-	UUID              string    `json:"id,omitempty"`
-	UserID            string    `json:"user_id,omitempty"`
-	Name              string    `json:"name,omitempty"`
-	Description       string    `json:"description,omitempty"`
-	IsActive          IsActive  `json:"is_active,omitempty"` // Enum8('active' = 1, 'draft' = 2, 'paused' = 3) DEFAULT 'active'
-	CreatedAt         string    `json:"created_at,omitempty"`
-	UpdatedAt         string    `json:"updated_at,omitempty"`
 	WorkflowInit      time.Time `json:"workflow_init,omitempty"`
 	WorkflowCompleted time.Time `json:"workflow_completed,omitempty"`
-	Status            Status    `json:"status,omitempty"` // Enum8('initial' = 1, 'pending' = 2, 'completed' = 3, 'processing' = 4, 'failed' = 5) DEFAULT 'initial'
+	Duration          *int64    `json:"duration,omitempty"`
+	Viewport          *Viewport `json:"viewport,omitempty"`
+	UUID              string    `json:"id,omitempty"`
+	CreatedAt         string    `json:"created_at,omitempty"`
+	UpdatedAt         string    `json:"updated_at,omitempty"`
+	Name              string    `json:"name,omitempty"`
+	UserID            string    `json:"user_id,omitempty"`
 	DirectoryToSave   string    `json:"directory_to_save"`
 	UserToken         string    `json:"access_token,omitempty"`
-	Duration          *int64    `json:"duration,omitempty"`
+	Description       string    `json:"description,omitempty"`
 	Nodes             []Node    `json:"nodes,omitempty"`
 	Edges             []Edge    `json:"edges,omitempty"`
-	Viewport          *Viewport `json:"viewport,omitempty"`
+	Status            Status    `json:"status,omitempty"`
+	IsActive          IsActive  `json:"is_active,omitempty"`
 }
 
 type WorkflowCommand struct {
@@ -85,34 +84,34 @@ type WorkflowCommand struct {
 }
 
 type WorkflowPayload struct {
-	UUID              string    `json:"id,omitempty"`
-	UserID            string    `json:"user_id,omitempty"`
-	Name              string    `json:"name,omitempty"`
-	Description       string    `json:"description,omitempty"`
-	IsActive          IsActive  `json:"is_active,omitempty"` // Enum8('active' = 1, 'draft' = 2, 'paused' = 3) DEFAULT 'active'
-	CreatedAt         string    `json:"created_at,omitempty"`
-	UpdatedAt         string    `json:"updated_at,omitempty"`
 	WorkflowInit      time.Time `json:"workflow_init,omitempty"`
 	WorkflowCompleted time.Time `json:"workflow_completed,omitempty"`
-	Status            Status    `json:"status,omitempty"` // Enum8('initial' = 1, 'pending' = 2, 'completed' = 3, 'processing' = 4, 'failed' = 5) DEFAULT 'initial'
-	DirectoryToSave   string    `json:"directory_to_save"`
-	UserToken         string    `json:"access_token,omitempty"`
 	Duration          *int64    `json:"duration,omitempty"`
 	Nodes             *string   `json:"nodes,omitempty"`
-	Edges             *string   `json:"edges,omitempty"`
-	Viewport          *string   `json:"viewport,omitempty"`
 	Version           *uint32   `json:"version,omitempty"`
+	Viewport          *string   `json:"viewport,omitempty"`
+	Edges             *string   `json:"edges,omitempty"`
+	UUID              string    `json:"id,omitempty"`
+	UserID            string    `json:"user_id,omitempty"`
+	DirectoryToSave   string    `json:"directory_to_save"`
+	UserToken         string    `json:"access_token,omitempty"`
+	Description       string    `json:"description,omitempty"`
+	Name              string    `json:"name,omitempty"`
+	UpdatedAt         string    `json:"updated_at,omitempty"`
+	CreatedAt         string    `json:"created_at,omitempty"`
 	TypeCommand       string    `json:"typecommand,omitempty"`
+	Status            Status    `json:"status,omitempty"`
+	IsActive          IsActive  `json:"is_active,omitempty"`
 }
 
 type WorkflowDetail struct {
-	WorkflowID          string      `json:"workflow_id"`
-	WorkflowName        string      `json:"workflow_name"`
 	WorkflowDescription *string     `json:"workflow_description,omitempty"`
 	WorkflowStatus      *int        `json:"workflow_status,omitempty"`
 	ExecutionStatus     *int        `json:"execution_status,omitempty"`
 	StartTime           *CustomTime `json:"start_time,omitempty"`
 	Duration            *int        `json:"duration,omitempty"`
+	WorkflowID          string      `json:"workflow_id"`
+	WorkflowName        string      `json:"workflow_name"`
 }
 
 type WorkflowsCount struct {
@@ -123,11 +122,11 @@ type WorkflowsCount struct {
 }
 
 type RecentWorkflow struct {
-	WorkflowName        string       `json:"workflow_name"`
 	WorkflowDescription *string      `json:"workflow_description,omitempty"`
 	ExecutionStatus     *int         `json:"execution_status,omitempty"`
 	StartTime           *CustomTime  `json:"start_time,omitempty"`
 	Duration            *interface{} `json:"duration,omitempty"`
+	WorkflowName        string       `json:"workflow_name"`
 }
 
 type Edge struct {
@@ -144,23 +143,23 @@ type Style struct {
 }
 
 type Node struct {
-	ID       string    `json:"id,omitempty"`
-	Type     string    `json:"type,omitempty"`
 	Position *Position `json:"position,omitempty"`
 	Data     *DataNode `json:"data,omitempty"`
 	Measured *Measured `json:"measured,omitempty"`
+	ID       string    `json:"id,omitempty"`
+	Type     string    `json:"type,omitempty"`
 }
 
 type DataNode struct {
+	ContentData    FormData                `json:"formdata"`
 	ID             string                  `json:"id,omitempty"`
 	Label          string                  `json:"label,omitempty"`
 	Options        string                  `json:"options,omitempty"`
 	Description    string                  `json:"description,omitempty"`
 	WorkflowID     string                  `json:"workflowid,omitempty"`
 	NodeID         string                  `json:"nodeid,omitempty"`
-	CredentialData RequestCreateCredential `json:"credential"`
 	Type           string                  `json:"type"`
-	ContentData    FormData                `json:"formdata"`
+	CredentialData RequestCreateCredential `json:"credential"`
 }
 
 type Measured struct {
@@ -189,11 +188,11 @@ type FormData struct {
 }
 
 type InfoWorkflow struct {
-	Meta                   []Meta      `json:"meta,omitempty"`
-	Data                   []Workflow  `json:"data,omitempty"`
 	Rows                   *int64      `json:"rows,omitempty"`
 	RowsBeforeLimitAtLeast *int64      `json:"rows_before_limit_at_least,omitempty"`
 	Statistics             *Statistics `json:"statistics,omitempty"`
+	Meta                   []Meta      `json:"meta,omitempty"`
+	Data                   []Workflow  `json:"data,omitempty"`
 }
 
 func (w *Workflow) UnmarshalJSON(data []byte) error {

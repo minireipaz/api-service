@@ -5,19 +5,19 @@ import (
 )
 
 type SyncUserRequest struct {
-	ID                       string      `json:"id,omitempty"`
-	AccessToken              string      `json:"access_token" binding:"required,max=1000"`
-	Sub                      string      `json:"user_id" binding:"required,max=50"`
-	Status                   UserStatus  `json:"status" binding:"omitempty,oneof=1 2 3 4"`
-	RoleID                   UserRoleID  `json:"roleId" binding:"omitempty,oneof=1 2 3 4 5 6 7 8 9 10"`
+	TrialExpiryDate          *CustomTime `json:"trialExpiryDate,omitempty"`
 	ResetPasswordToken       *string     `json:"resetPasswordToken,omitempty"`
 	ResetPasswordTokenSentAt *CustomTime `json:"resetPasswordTokenSentAt,omitempty"`
 	InvitationToken          *string     `json:"invitationToken,omitempty"`
 	InvitationTokenSentAt    *CustomTime `json:"invitationTokenSentAt,omitempty"`
-	TrialExpiryDate          *CustomTime `json:"trialExpiryDate,omitempty"`
 	DeletedAt                *CustomTime `json:"deleted_at,omitempty"`
 	CreatedAt                *CustomTime `json:"created_at,omitempty"`
 	UpdatedAt                *CustomTime `json:"updated_at,omitempty"`
+	AccessToken              string      `json:"access_token" binding:"required,max=1000"`
+	Sub                      string      `json:"user_id" binding:"required,max=50"`
+	ID                       string      `json:"id,omitempty"`
+	Status                   UserStatus  `json:"status" binding:"omitempty,oneof=1 2 3 4"`
+	RoleID                   UserRoleID  `json:"roleId" binding:"omitempty,oneof=1 2 3 4 5 6 7 8 9 10"`
 }
 
 type UserStatus uint8

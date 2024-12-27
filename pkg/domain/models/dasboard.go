@@ -2,17 +2,17 @@ package models
 
 // ResponseInfoDashboard represent response from getting dashboard info
 type ResponseInfoDashboard struct {
+	Error  string             `json:"error"`
 	Data   []DashboardDetails `json:"data"`
 	Status int                `json:"status"`
-	Error  string             `json:"error"`
 }
 
 type InfoDashboard struct {
-	Meta                   []Meta             `json:"meta,omitempty"`
-	Data                   []DashboardDetails `json:"data,omitempty"`
 	Rows                   *int64             `json:"rows,omitempty"`
 	RowsBeforeLimitAtLeast *int64             `json:"rows_before_limit_at_least,omitempty"`
 	Statistics             *Statistics        `json:"statistics,omitempty"`
+	Meta                   []Meta             `json:"meta,omitempty"`
+	Data                   []DashboardDetails `json:"data,omitempty"`
 }
 
 type DashboardDetails struct {

@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type CredentialServiceImpl struct {
@@ -36,10 +38,11 @@ func NewCredentialService(googleRepo repos.CredentialGoogleHTTPRepository,
 }
 
 func (c *CredentialServiceImpl) CreateCredential(currentCredential *models.RequestCreateCredential) (*models.RequestCreateCredential, error) {
-  // not necesary to generate new ID
-  // datasource credentials from clickhouse is using ReplacingMergeTree
+	// not necessary to generate new ID
+	// datasource credentials from clickhouse is using ReplacingMergeTree
+	// TODO: create requestid
 	if currentCredential.ID == "none" || !strings.HasPrefix(currentCredential.ID, "credential_") {
-		currentCredential.ID = c.generateNewIDCredential(currentCredential)
+		currentCredential.ID = c.generateNewIDCredential()
 	}
 	switch currentCredential.Type { // TODO: refactor
 	case "googlesheets":
@@ -54,18 +57,19 @@ func (c *CredentialServiceImpl) CreateCredential(currentCredential *models.Reque
 
 // this function DONT GENERATE GLOBAL UNIQUE ID in theory can be collissions in removed nodes, workflows,...
 // TODO: maybe can make general function to create GLOBAL IDs
- func (c *CredentialServiceImpl) generateNewIDCredential(currentCredential *models.RequestCreateCredential) string {
-	return fmt.Sprintf("credential_%s_%s_%s_%s", currentCredential.Sub, currentCredential.WorkflowID, currentCredential.NodeID, currentCredential.Type)
-}
-
-// func (c *CredentialServiceImpl) generateNewIDCredential() string {
-// 	newCredentialID := uuid.New().String()
-// 	if newCredentialID == "" { // in case fail
-// 		newCredentialID = uuid.New().String()
-// 	}
+//  func (c *CredentialServiceImpl) generateNewIDCredential(currentCredential *models.RequestCreateCredential) string {
 // 	now := time.Now().UTC().Unix()
-// 	return fmt.Sprintf("credential_%s_%d", newCredentialID, now)
+// 	return fmt.Sprintf("credential_%s_%s_%s_%s_%d", currentCredential.Sub, currentCredential.WorkflowID, currentCredential.NodeID, currentCredential.Type, now)
 // }
+
+func (c *CredentialServiceImpl) generateNewIDCredential() string {
+	newCredentialID := uuid.New().String()
+	if newCredentialID == "" { // in case fail
+		newCredentialID = uuid.New().String()
+	}
+	now := time.Now().UTC().Unix()
+	return fmt.Sprintf("credential_%s_%d", newCredentialID, now)
+}
 
 func (c *CredentialServiceImpl) ExchangeGoogleCredential(currentCredential *models.RequestExchangeCredential) (token, refresh *string, expire *time.Time, stateInfo *models.RequestExchangeCredential, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), models.MaxTimeoutContext)

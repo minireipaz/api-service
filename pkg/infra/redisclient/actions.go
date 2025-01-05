@@ -44,6 +44,7 @@ func (a *ActionsRepository) Create(newAction *models.RequestGoogleAction) (creat
 	ctx := context.Background()
 
 	txf := func(tx *redis.Tx) error {
+		// used lock to check if exists
 		lockKey := fmt.Sprintf("lock:%s", newAction.ActionID)
 		key := ActionsGlobalAll
 		field := newAction.ActionID
@@ -60,13 +61,13 @@ func (a *ActionsRepository) Create(newAction *models.RequestGoogleAction) (creat
 
 		// SETNX only insert to set the lock key if cannot insert lock exist
 		// dummy value
-		setnxRes, err := tx.SetNX(ctx, lockKey, "1", models.MaxTimeForLocks).Result()
+		existLock, err := tx.Exists(ctx, lockKey).Result()
 		if err != nil {
 			return err
 		}
-		if !setnxRes {
-			// Lock already exists
-			return ErrActionExists
+		if existLock != 1 {
+			// Lock deleted
+			return ErrLockNotExists
 		}
 
 		// Proceed to set the action

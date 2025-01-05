@@ -6,12 +6,12 @@ import (
 )
 
 type ActionsService interface {
-	GetGoogleSheetByID(newAction models.RequestGoogleAction, actionUserToken *string) (created bool, exist bool, actionID *string)
+	CreateActionsGoogleSheet(newAction models.RequestGoogleAction, actionUserToken *string) (sendedBroker bool, sendedToService bool, actionID *string)
 }
 
 type ActionsHTTPRepository interface {
 	SendAction(newAction *models.RequestGoogleAction, actionUserToken *string) (sended bool)
-	PublishCommand(data *models.ActionsCommand, serviceUser *string) *string
+	PublishCommand(data *models.ActionsCommand, serviceUser *string) *models.ResponseGetGoogleSheetByID
 }
 
 type ActionsRedisRepoInterface interface {

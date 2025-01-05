@@ -18,7 +18,7 @@ func NewActionsController(newActionsService repos.ActionsService, newAuthServ re
 	return &ActionsController{actionsService: newActionsService, authService: newAuthServ}
 }
 
-func (a *ActionsController) GetGoogleSheetByID(ctx *gin.Context) {
+func (a *ActionsController) CreateActionsGoogleSheet(ctx *gin.Context) {
 	newAction := ctx.MustGet(models.ActionGoogleKey).(models.RequestGoogleAction)
 	actionUserToken, err := a.authService.GetActionUserAccessToken()
 	if err != nil {
@@ -28,8 +28,8 @@ func (a *ActionsController) GetGoogleSheetByID(ctx *gin.Context) {
 		})
 		return
 	}
-	created, exist, actionID := a.actionsService.GetGoogleSheetByID(newAction, actionUserToken)
-	if !created && !exist {
+	sendedBroker, sendedToService, actionID := a.actionsService.CreateActionsGoogleSheet(newAction, actionUserToken)
+	if !sendedBroker {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":  models.WorkflowNameNotGenerate,
 			"status": http.StatusInternalServerError,
@@ -37,7 +37,7 @@ func (a *ActionsController) GetGoogleSheetByID(ctx *gin.Context) {
 		return
 	}
 
-	if exist { // preexist
+	if !sendedBroker && !sendedToService { // happens
 		ctx.JSON(http.StatusAlreadyReported, gin.H{
 			"error":  models.WorkflowNameNotGenerate,
 			"status": http.StatusInternalServerError,
@@ -51,3 +51,29 @@ func (a *ActionsController) GetGoogleSheetByID(ctx *gin.Context) {
 		Data:   *actionID,
 	})
 }
+
+// func (a *ActionsController) GetGoogleSheetByID(ctx *gin.Context) {
+// 	actionID := ctx.Param("idaction")
+// 	userID := ctx.Param("iduser")
+// 	data, err := a.actionsService.GetGoogleSheetByID(&actionID, &userID)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, gin.H{
+// 			"error":  fmt.Sprintf("Failed to authenticate: %v", err),
+// 			"status": http.StatusInternalServerError,
+// 		})
+// 		return
+// 	}
+// 	if data != nil {
+// 		ctx.JSON(http.StatusInternalServerError, gin.H{
+// 			"error":  models.WorkflowNameNotGenerate,
+// 			"status": http.StatusInternalServerError,
+// 		})
+// 		return
+// 	}
+
+// 	ctx.JSON(http.StatusCreated, models.ResponseGetGoogleSheetByID{
+// 		Status: http.StatusOK,
+// 		Error:  "",
+// 		Data:   *data,
+// 	})
+// }

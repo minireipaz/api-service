@@ -99,7 +99,8 @@ This architecture allows us to:
 ## Use of Cached Tokens
 To reduce the load on authentication and authorization systems, a cache store (in this case, Redis) is used to temporarily store access tokens for service users. This approach avoids the need to generate a new access token with each serverless function call, significantly enhancing performance. 
 
-The `serviceuser:token` key is used to store the service user's access token, with a Time-to-Live (TTL) of -1.
+The `serviceuser_backend:token` key is used to store the backend service user's access token, with a Time-to-Live (TTL) of -1.
+The `serviceuser_action:token` key is used to store the action service user's access token, with a Time-to-Live (TTL) of -1.
 
 The authentication and authorization for this system are managed using ZITADEL, which supports a maximum of 100 Daily Active Users (DAU), defined as users who authenticate or refresh their tokens within a given day. Given this limitation, we leverage caching and avoid token rotation in development environments, for example, to ensure we stay within usage limits while optimizing system efficiency.
 
@@ -123,7 +124,7 @@ if ac.config.GetEnv("ROTATE_SERVICE_USER_TOKEN", "n") == "y" {
 }
 ```
 
-serviceuser:token and TTL -1
+serviceuser_backend:token and TTL -1
 
 ## WorkflowHTTPRepository
 This struct manages HTTP operations related to workflows. Its primary methods include:

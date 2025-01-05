@@ -12,9 +12,8 @@ import (
 
 func Register(app *gin.Engine, dependencies *dimodel.Dependencies) {
 	app.NoRoute(ErrRouter)
-
 	// Routes in groups
-	api := app.Group("/api")
+	api := app.Group("/api/v1")
 	{
 		api.GET("/ping", common.Ping)
 
@@ -56,7 +55,10 @@ func Register(app *gin.Engine, dependencies *dimodel.Dependencies) {
 
 		actions := api.Group("/actions")
 		{
-			actions.POST("/google/sheets", middlewares.ValidateGetGoogleSheet(), dependencies.ActionsController.GetGoogleSheetByID)
+			actions.POST("/google/sheets", middlewares.ValidateGetGoogleSheet(), dependencies.ActionsController.CreateActionsGoogleSheet)
+			// polling from client
+			// maybe needs to move to another service
+			// actions.GET("/google/sheets/:iduser/:idaction", middlewares.ValidateGetGoogleSheet(), dependencies.ActionsController.GetGoogleSheetByID)
 		}
 	}
 }

@@ -55,7 +55,7 @@ func (c *CredentialKafkaRepository) credentialToPayload(stateInfo *models.Reques
 	stateInfo.CreatedAt = &now
 	stateInfo.UpdatedAt = &now
 	stateInfo.LastUsedAt = &now
-	stateInfo.RevokedAt = nil
+	stateInfo.RevokedAt = &models.CustomTime{Time: models.TimeDefault}
 	stateInfo.Version = 1
 	stateInfo.IsActive = true
 

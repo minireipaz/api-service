@@ -17,6 +17,7 @@ type RedisClient struct {
 }
 
 var ErrActionExists = fmt.Errorf("action already exists")
+var ErrLockNotExists = fmt.Errorf("lock not exist")
 
 const (
 	operationSET    = "set"

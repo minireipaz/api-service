@@ -89,6 +89,7 @@ func (c *CredentialGoogleHTTPRepository) ExchangeGoogleCredential(currentCredent
 	// token expiry in 1hr
 	token, err := googleOauthConfig.Exchange(context.Background(), currentCredential.Data.Code, opts...)
 	if err != nil {
+		// TODO: can be expired
 		return nil, nil, nil, nil, fmt.Errorf("ERROR | cannot exchange code: %v", err)
 	}
 	return &token.AccessToken, &token.RefreshToken, &token.Expiry, stateInfo, nil

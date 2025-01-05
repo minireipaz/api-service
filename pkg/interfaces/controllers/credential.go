@@ -37,7 +37,8 @@ func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 func (c *CredentialController) ExchangeGoogleCode(ctx *gin.Context) {
 	currentCredential := ctx.MustGet(models.CredentialExchangeContextKey).(models.RequestExchangeCredential)
 	// this token and refresh expire in 1hr
-	token, tokenRefresh, _, _, err := c.credentialService.ExchangeGoogleCredential(&currentCredential)
+	// stateinfo all returned because dont know what values are necessary in this controller
+	token, tokenRefresh, _, stateInfo, err := c.credentialService.ExchangeGoogleCredential(&currentCredential)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":  models.CredNameNotGenerate,
@@ -51,6 +52,7 @@ func (c *CredentialController) ExchangeGoogleCode(ctx *gin.Context) {
 		"status":       http.StatusOK,
 		"token":        token,
 		"tokenrefresh": tokenRefresh,
+		"id":           stateInfo.ID,
 	})
 }
 

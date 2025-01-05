@@ -93,7 +93,10 @@ func (z *ZitadelClient) ValidateUserToken(userToken, jwtToken string) (bool, int
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return false, 0, fmt.Errorf("ERROR | cannot decode token: %v body msg: %s", err, string(bodyBytes))
 	}
-
+	if result.Active == nil || result.Exp == nil {
+		// nil error because its expired not fault
+		return false, 0, nil
+	}
 	return *result.Active, *result.Exp, nil
 }
 

@@ -29,13 +29,13 @@ type WorkflowFrontend struct {
 	Viewport          *Viewport  `json:"viewport,omitempty"`
 	Duration          *int64     `json:"duration,omitempty"`
 	Status            *Status    `json:"status,omitempty"`
-	DirectoryToSave   string     `json:"directory_to_save" binding:"required,alphanum,max=255"`
+	DirectoryToSave   string     `json:"directory_to_save" binding:"required,max=255"`
 	UpdatedAt         string     `json:"updated_at,omitempty"`
 	UserToken         string     `json:"access_token,omitempty"`
 	CreatedAt         string     `json:"created_at,omitempty"`
 	UserID            string     `json:"user_id,omitempty"`
 	Description       string     `json:"description,omitempty"`
-	WorkflowName      string     `json:"name" binding:"required,alphanum,max=255"`
+	WorkflowName      string     `json:"name" binding:"required,max=255"`
 	UUID              string     `json:"id,omitempty"`
 	Nodes             []Node     `json:"nodes,omitempty"`
 	Edges             []Edge     `json:"edges,omitempty"`
@@ -61,22 +61,22 @@ const (
 )
 
 type Workflow struct {
-	WorkflowInit      time.Time `json:"workflow_init,omitempty"`
-	WorkflowCompleted time.Time `json:"workflow_completed,omitempty"`
-	Duration          *int64    `json:"duration,omitempty"`
-	Viewport          *Viewport `json:"viewport,omitempty"`
-	UUID              string    `json:"id,omitempty"`
-	CreatedAt         string    `json:"created_at,omitempty"`
-	UpdatedAt         string    `json:"updated_at,omitempty"`
-	Name              string    `json:"name,omitempty"`
-	UserID            string    `json:"user_id,omitempty"`
-	DirectoryToSave   string    `json:"directory_to_save"`
-	UserToken         string    `json:"access_token,omitempty"`
-	Description       string    `json:"description,omitempty"`
-	Nodes             []Node    `json:"nodes,omitempty"`
-	Edges             []Edge    `json:"edges,omitempty"`
-	Status            Status    `json:"status,omitempty"`
-	IsActive          IsActive  `json:"is_active,omitempty"`
+	WorkflowInit      CustomTime `json:"workflow_init,omitempty"`
+	WorkflowCompleted CustomTime `json:"workflow_completed,omitempty"`
+	Duration          *int64     `json:"duration,omitempty"`
+	Viewport          *Viewport  `json:"viewport,omitempty"`
+	UUID              string     `json:"id,omitempty"`
+	CreatedAt         string     `json:"created_at,omitempty"`
+	UpdatedAt         string     `json:"updated_at,omitempty"`
+	Name              string     `json:"name,omitempty"`
+	UserID            string     `json:"user_id,omitempty"`
+	DirectoryToSave   string     `json:"directory_to_save"`
+	UserToken         string     `json:"access_token,omitempty"`
+	Description       string     `json:"description,omitempty"`
+	Nodes             []Node     `json:"nodes,omitempty"`
+	Edges             []Edge     `json:"edges,omitempty"`
+	Status            Status     `json:"status,omitempty"`
+	IsActive          IsActive   `json:"is_active,omitempty"`
 }
 
 type WorkflowCommand struct {
@@ -84,24 +84,24 @@ type WorkflowCommand struct {
 }
 
 type WorkflowPayload struct {
-	WorkflowInit      time.Time `json:"workflow_init,omitempty"`
-	WorkflowCompleted time.Time `json:"workflow_completed,omitempty"`
-	Duration          *int64    `json:"duration,omitempty"`
-	Nodes             *string   `json:"nodes,omitempty"`
-	Version           *uint32   `json:"version,omitempty"`
-	Viewport          *string   `json:"viewport,omitempty"`
-	Edges             *string   `json:"edges,omitempty"`
-	UUID              string    `json:"id,omitempty"`
-	UserID            string    `json:"user_id,omitempty"`
-	DirectoryToSave   string    `json:"directory_to_save"`
-	UserToken         string    `json:"access_token,omitempty"`
-	Description       string    `json:"description,omitempty"`
-	Name              string    `json:"name,omitempty"`
-	UpdatedAt         string    `json:"updated_at,omitempty"`
-	CreatedAt         string    `json:"created_at,omitempty"`
-	TypeCommand       string    `json:"typecommand,omitempty"`
-	Status            Status    `json:"status,omitempty"`
-	IsActive          IsActive  `json:"is_active,omitempty"`
+	WorkflowInit      CustomTime `json:"workflow_init,omitempty"`
+	WorkflowCompleted CustomTime `json:"workflow_completed,omitempty"`
+	Duration          *int64     `json:"duration,omitempty"`
+	Nodes             *string    `json:"nodes,omitempty"`
+	Version           *uint32    `json:"version,omitempty"`
+	Viewport          *string    `json:"viewport,omitempty"`
+	Edges             *string    `json:"edges,omitempty"`
+	UUID              string     `json:"id,omitempty"`
+	UserID            string     `json:"user_id,omitempty"`
+	DirectoryToSave   string     `json:"directory_to_save"`
+	UserToken         string     `json:"access_token,omitempty"`
+	Description       string     `json:"description,omitempty"`
+	Name              string     `json:"name,omitempty"`
+	UpdatedAt         string     `json:"updated_at,omitempty"`
+	CreatedAt         string     `json:"created_at,omitempty"`
+	TypeCommand       string     `json:"typecommand,omitempty"`
+	Status            Status     `json:"status,omitempty"`
+	IsActive          IsActive   `json:"is_active,omitempty"`
 }
 
 type WorkflowDetail struct {

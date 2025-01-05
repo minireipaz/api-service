@@ -18,6 +18,9 @@ const (
 	TimeoutRequest        = 5 * time.Minute
 )
 
+// 1970-01-01T00:00:00
+var TimeDefault = time.Unix(0, 0) // time.Date(1970, 1, 1, 1, 1, 1, 1, time.UTC)
+
 const (
 	CredentialCreateContextKey   = "createcredential"
 	CredentialExchangeContextKey = "exchangecredential"

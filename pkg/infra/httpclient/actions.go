@@ -36,7 +36,8 @@ func (a *ActionsHTTPRepository) SendAction(newAction *models.RequestGoogleAction
 	if response == nil {
 		return false
 	}
-	return response.Status == http.StatusOK
+  // from action return accepdted
+	return response.Status == http.StatusAccepted
 }
 
 func (a *ActionsHTTPRepository) PublishCommand(data *models.ActionsCommand, serviceUser *string) *models.ResponseGetGoogleSheetByID {

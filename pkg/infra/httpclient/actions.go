@@ -24,19 +24,17 @@ func NewActionsClientHTTP(client HTTPClient, clickhouseConfig config.ClickhouseC
 }
 
 func (a *ActionsHTTPRepository) SendAction(newAction *models.RequestGoogleAction, actionUserToken *string) (sended bool) {
-	now := time.Now().UTC()
-	typeCommand := models.CommandTypeCreate
 	command := models.ActionsCommand{
 		Actions:   newAction,
-		Type:      &typeCommand,
-		Timestamp: &now,
+		Type:      models.CommandTypeCreate,
+		Timestamp: time.Now().UTC(),
 	}
 
 	response := a.PublishCommand(&command, actionUserToken)
 	if response == nil {
 		return false
 	}
-  // from action return accepdted
+	// from action return accepdted 202
 	return response.Status == http.StatusAccepted
 }
 

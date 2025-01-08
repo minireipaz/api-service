@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"minireipaz/pkg/domain/models"
+	"time"
 )
 
 type ActionsKafkaRepository struct {
@@ -11,9 +12,6 @@ type ActionsKafkaRepository struct {
 }
 
 const (
-	// CommandTypeCreate = "create"
-	// CommandTypeUpdate = "update"
-	// CommandTypeDelete = "delete"
 	TopicName = "actions.command"
 )
 
@@ -25,9 +23,9 @@ func NewActionsKafkaRepository(client KafkaClient) *ActionsKafkaRepository {
 
 func (a *ActionsKafkaRepository) Create(newAction *models.RequestGoogleAction) (sended bool) {
 	command := models.ActionsCommand{
-		Actions: newAction,
-		// Type:      CommandTypeCreate,
-		// Timestamp: time.Now(),
+		Actions:   newAction,
+		Type:      CommandTypeCreate,
+		Timestamp: time.Now().UTC(),
 	}
 	sended = a.PublishCommand(command, newAction.ActionID)
 	return sended

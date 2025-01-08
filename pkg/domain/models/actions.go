@@ -35,6 +35,6 @@ type ResponseGetGoogleSheetByID struct {
 
 type ActionsCommand struct {
 	Actions   *RequestGoogleAction `json:"actions"`
-	Type      *string              `json:"type,omitempty"`
-	Timestamp *time.Time           `json:"timestamp,omitempty"`
+	Type      string               `json:"type,omitempty"`
+	Timestamp time.Time            `json:"timestamp,omitempty"`
 }

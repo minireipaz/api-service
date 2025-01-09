@@ -19,7 +19,8 @@ const (
 )
 
 // 1970-01-01T00:00:00
-var TimeDefault = time.Unix(0, 0) // time.Date(1970, 1, 1, 1, 1, 1, 1, time.UTC)
+// var TimeDefault = time.Unix(0, 0) // time.Date(1970, 1, 1, 1, 1, 1, 1, time.UTC)
+var TimeDefault = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
 
 const (
 	CredentialCreateContextKey   = "createcredential"

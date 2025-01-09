@@ -227,8 +227,8 @@ func (s *WorkflowServiceImpl) retriesUpdateWorkflow(workflow *models.Workflow) (
 	defer s.redisRepo.RemoveLock(lockKey) // in case
 
 	workflow.UpdatedAt = time.Now().UTC().Format(models.LayoutTimestamp) // right now not controlled by db
-	workflow.WorkflowInit = models.CustomTime{Time: models.TimeDefault}
-	workflow.WorkflowCompleted = models.CustomTime{Time: models.TimeDefault}
+	// workflow.WorkflowInit = models.CustomTime{Time: models.TimeDefault}
+	// workflow.WorkflowCompleted = models.CustomTime{Time: models.TimeDefault}
 
 	updated = s.brokerRepo.Update(workflow)
 	if !updated {

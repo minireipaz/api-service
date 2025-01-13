@@ -38,15 +38,18 @@ func NewCredentialService(googleRepo repos.CredentialGoogleHTTPRepository,
 }
 
 func (c *CredentialServiceImpl) CreateCredential(currentCredential *models.RequestCreateCredential) (*models.RequestCreateCredential, error) {
+	credentialCreatedNew := false
 	// not necessary to generate new ID
 	// datasource credentials from clickhouse is using ReplacingMergeTree
-	// TODO: create requestid
+	// TODO: requestid is not setted to global uuid and not saved to DB
 	if currentCredential.ID == "none" || !strings.HasPrefix(currentCredential.ID, "credential_") {
-		currentCredential.ID = c.generateNewIDCredential()
+		credentialCreatedNew = true
+		currentCredential.ID = c.generateNewIDCredential(currentCredential)
 	}
+	currentCredential.RequestID = c.generateNewRequestID()
 	switch currentCredential.Type { // TODO: refactor
 	case "googlesheets":
-		authURL := c.googleOAuthRepo.GenerateAuthURL(currentCredential)
+		authURL := c.googleOAuthRepo.GenerateAuthURL(currentCredential, &credentialCreatedNew)
 		currentCredential.Data.RedirectURL = *authURL
 	default:
 		return nil, errors.New("ERROR | currentCredential Type not supported")
@@ -55,20 +58,29 @@ func (c *CredentialServiceImpl) CreateCredential(currentCredential *models.Reque
 	return currentCredential, nil
 }
 
-// this function DONT GENERATE GLOBAL UNIQUE ID in theory can be collissions in removed nodes, workflows,...
-// TODO: maybe can make general function to create GLOBAL IDs
 //  func (c *CredentialServiceImpl) generateNewIDCredential(currentCredential *models.RequestCreateCredential) string {
 // 	now := time.Now().UTC().Unix()
 // 	return fmt.Sprintf("credential_%s_%s_%s_%s_%d", currentCredential.Sub, currentCredential.WorkflowID, currentCredential.NodeID, currentCredential.Type, now)
 // }
 
-func (c *CredentialServiceImpl) generateNewIDCredential() string {
+// this function DONT GENERATE GLOBAL UNIQUE ID in theory can be collissions in removed nodes, workflows,...
+// TODO: maybe can make general function to create GLOBAL IDs
+func (c *CredentialServiceImpl) generateNewIDCredential(currentCredential *models.RequestCreateCredential) string {
 	newCredentialID := uuid.New().String()
 	if newCredentialID == "" { // in case fail
 		newCredentialID = uuid.New().String()
 	}
-	now := time.Now().UTC().Unix()
-	return fmt.Sprintf("credential_%s_%d", newCredentialID, now)
+	return fmt.Sprintf("credential_%s_%s", currentCredential.Sub, newCredentialID)
+}
+
+// this function DONT GENERATE GLOBAL UNIQUE ID in theory can be collissions in removed nodes, workflows,...
+// TODO: maybe can make general function to create GLOBAL IDs
+func (c *CredentialServiceImpl) generateNewRequestID() string {
+	newCredentialID := uuid.New().String()
+	if newCredentialID == "" { // in case fail
+		newCredentialID = uuid.New().String()
+	}
+	return newCredentialID
 }
 
 func (c *CredentialServiceImpl) ExchangeGoogleCredential(currentCredential *models.RequestExchangeCredential) (token, refresh *string, expire *time.Time, stateInfo *models.RequestExchangeCredential, err error) {
@@ -95,7 +107,7 @@ func (c *CredentialServiceImpl) ExchangeGoogleCredential(currentCredential *mode
 	}
 	sended := c.saveCredentialExchange(token, refresh, expire, stateInfo)
 	if !sended {
-		log.Printf("ERROR | Needs to Added to dead letter %s", currentCredential.Sub)
+		log.Printf("ERROR | Cannot save Credential NOT added to dead letter %v", currentCredential)
 	}
 	return token, refresh, expire, stateInfo, err
 }
@@ -147,4 +159,17 @@ func (c *CredentialServiceImpl) GetAllCredentials(userID *string) (response *mod
 		Status:      http.StatusOK,
 		Credentials: credentials,
 	}, true
+}
+
+func (c *CredentialServiceImpl) TransformWorkflow(currenteCredential *models.RequestExchangeCredential, workflow *models.Workflow) *models.Workflow {
+	for i := 0; i < len(workflow.Nodes); i++ {
+		if workflow.Nodes[i].ID == currenteCredential.NodeID {
+			// TODO: in case changed btw i think dont changed
+			workflow.Nodes[i].Data.CredentialData.ID = currenteCredential.ID
+			// workflow.Nodes[i].Data.CredentialData.Data.ClientID = currenteCredential.Data.ClientID
+			// workflow.Nodes[i].Data.CredentialData.Data.ClientSecret = currenteCredential.Data.ClientSecret
+			workflow.Nodes[i].Data.CredentialData.Data = currenteCredential.Data
+		}
+	}
+	return workflow
 }

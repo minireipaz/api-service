@@ -22,7 +22,7 @@ func NewGoogleCredentialRepository(httpCli HTTPClient) *CredentialGoogleHTTPRepo
 	}
 }
 
-func (c *CredentialGoogleHTTPRepository) GenerateAuthURL(credential *models.RequestCreateCredential) *string {
+func (c *CredentialGoogleHTTPRepository) GenerateAuthURL(credential *models.RequestCreateCredential, credentialCreatedNew *bool) *string {
 	codeVerifier := oauth2.GenerateVerifier()
 
 	credential.Timestamp = time.Now().UTC().Unix()
@@ -30,6 +30,7 @@ func (c *CredentialGoogleHTTPRepository) GenerateAuthURL(credential *models.Requ
 	credential.Data.Code = codeVerifier
 	credential.Data.CodeVerifier = codeVerifier
 	credential.Data.OAuthURL = google.Endpoint.AuthURL
+	credential.CredentialCreatedNew = *credentialCreatedNew // in case to update workflow
 	stateJSON, _ := json.Marshal(credential)
 	stateToken := base64.URLEncoding.EncodeToString(stateJSON)
 

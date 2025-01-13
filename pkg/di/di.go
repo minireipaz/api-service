@@ -41,7 +41,6 @@ func InitDependencies() *dimodel.Dependencies {
 	repoCredentialBroker := brokerclient.NewCredentialKafkaRepository(credentialBrokerClient)
 	repoCredentialHTTP := httpclient.NewCredentialRepository(credentialHTTPClient, clickhouseConfig)
 	credentialService := services.NewCredentialService(googleCredentialRepo, facebookCredentialRepo, redisCredentialRepo, repoCredentialBroker, repoCredentialHTTP)
-	credentialController := controllers.NewCredentialController(credentialService, authService)
 
 	workflowHTTPClient := httpclient.NewClientImpl(models.TimeoutRequest)
 	repoWorkflowHTTP := httpclient.NewWorkflowClientHTTP(workflowHTTPClient, clickhouseConfig)
@@ -52,6 +51,8 @@ func InitDependencies() *dimodel.Dependencies {
 	idService := services.NewUUIDService()
 	workflowService := services.NewWorkflowService(repoWorkflowRedis, repoWorkflowBroker, idService, repoWorkflowHTTP)
 	workflowController := controllers.NewWorkflowController(workflowService, credentialService, authService)
+
+	credentialController := controllers.NewCredentialController(credentialService, authService, workflowService)
 
 	dashboardHTTPClient := httpclient.NewClientImpl(models.TimeoutRequest)
 	dashboardRepo := httpclient.NewDashboardRepository(dashboardHTTPClient, clickhouseConfig)

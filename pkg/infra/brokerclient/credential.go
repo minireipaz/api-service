@@ -2,7 +2,6 @@ package brokerclient
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"minireipaz/pkg/common"
 	"minireipaz/pkg/domain/models"
@@ -32,9 +31,11 @@ func (c *CredentialKafkaRepository) CreateCredential(token, refresh *string, exp
 	}
 	command := CredentialCommand{
 		Credential: payload,
+		Type:       CommandTypeCreate,
+		Timestamp:  time.Now().UTC(),
 	}
-	key := fmt.Sprintf("credential_%s_%s_%s_%s", stateInfo.Sub, stateInfo.WorkflowID, stateInfo.NodeID, stateInfo.Type)
-	sended = c.PublishCommand(command, key)
+	// key := fmt.Sprintf("credential_%s_%s_%s_%s", stateInfo.Sub, stateInfo.WorkflowID, stateInfo.NodeID, stateInfo.Type)
+	sended = c.PublishCommand(command, stateInfo.ID)
 	return sended
 }
 

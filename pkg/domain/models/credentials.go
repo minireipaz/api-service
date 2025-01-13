@@ -22,31 +22,35 @@ const (
 )
 
 type RequestExchangeCredential struct {
-	RevokedAt  *CustomTime    `json:"revoked_at,omitempty"`
-	LastUsedAt *CustomTime    `json:"last_used_at,omitempty"`
-	ExpiresAt  *CustomTime    `json:"expires_at,omitempty"`
-	UpdatedAt  *CustomTime    `json:"updated_at,omitempty"`
-	CreatedAt  *CustomTime    `json:"created_at,omitempty"`
-	NodeID     string         `json:"nodeid,omitempty"`
-	Sub        string         `json:"sub,omitempty"`
-	WorkflowID string         `json:"workflowid,omitempty"`
-	ID         string         `json:"id,omitempty" `
-	Type       string         `json:"type,omitempty"`
-	Name       string         `json:"name,omitempty"`
-	Data       DataCredential `json:"data,omitempty"`
-	Version    uint32         `json:"version,omitempty"`
-	IsActive   bool           `json:"is_active,omitempty"`
+	RequestID            string         `json:"requestid,omitempty"`
+	CredentialCreatedNew bool           `json:"credentialnew,omitempty"`
+	RevokedAt            *CustomTime    `json:"revoked_at,omitempty"`
+	LastUsedAt           *CustomTime    `json:"last_used_at,omitempty"`
+	ExpiresAt            *CustomTime    `json:"expires_at,omitempty"`
+	UpdatedAt            *CustomTime    `json:"updated_at,omitempty"`
+	CreatedAt            *CustomTime    `json:"created_at,omitempty"`
+	NodeID               string         `json:"nodeid,omitempty"`
+	Sub                  string         `json:"sub,omitempty"`
+	WorkflowID           string         `json:"workflowid,omitempty"`
+	ID                   string         `json:"id,omitempty" `
+	Type                 string         `json:"type,omitempty"`
+	Name                 string         `json:"name,omitempty"`
+	Data                 DataCredential `json:"data,omitempty"`
+	Version              uint32         `json:"version,omitempty"`
+	IsActive             bool           `json:"is_active,omitempty"`
 }
 
 type RequestCreateCredential struct {
-	ID         string         `json:"id,omitempty"`
-	Sub        string         `json:"sub,omitempty"`
-	Name       string         `json:"name,omitempty" `
-	Type       string         `json:"type,omitempty" `
-	WorkflowID string         `json:"workflowid,omitempty"`
-	NodeID     string         `json:"nodeid,omitempty"`
-	Data       DataCredential `json:"data" binding:"required"`
-	Timestamp  int64          `json:"timestamp,omitempty"`
+	ID                   string         `json:"id,omitempty"`
+	Sub                  string         `json:"sub,omitempty"`
+	Name                 string         `json:"name,omitempty" `
+	Type                 string         `json:"type,omitempty" `
+	WorkflowID           string         `json:"workflowid,omitempty"`
+	NodeID               string         `json:"nodeid,omitempty"`
+	RequestID            string         `json:"requestid,omitempty"`
+	Data                 DataCredential `json:"data" binding:"required"`
+	Timestamp            int64          `json:"timestamp,omitempty"`
+	CredentialCreatedNew bool           `json:"credentialnew,omitempty"`
 }
 
 type DataCredential struct {

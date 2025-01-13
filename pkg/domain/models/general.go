@@ -16,10 +16,10 @@ const (
 	TimeDriftForExpire    = 600 // 10 minutes
 	MaxTimeForLocks       = 30 * time.Second
 	TimeoutRequest        = 5 * time.Minute
+	MaxSecondsGoRoutine   = 9 * time.Second
 )
 
-// 1970-01-01T00:00:00
-// var TimeDefault = time.Unix(0, 0) // time.Date(1970, 1, 1, 1, 1, 1, 1, time.UTC)
+// 1970-01-01 00:00:00
 var TimeDefault = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
 
 const (

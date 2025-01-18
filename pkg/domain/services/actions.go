@@ -63,7 +63,7 @@ func (a *ActionsServiceImpl) retriesCreateAction(newAction *models.RequestGoogle
 	newAction.CreatedAt = now
 	created, exist, err := a.redisRepo.Create(newAction)
 	if err != nil {
-		log.Printf("ERROR | acquiring lock: %v", err)
+		log.Printf("ERROR | acquiring lock for retriesCreateAction: %v", err)
 		return false, false
 	}
 	if exist || !created {
@@ -85,7 +85,8 @@ func (a *ActionsServiceImpl) retriesCreateAction(newAction *models.RequestGoogle
 	// posible HTTP_SINK_ENABLED values: y/n
 	if config.GetEnv("CONNECTOR_HTTP_SINK_ENABLED", "n") == "n" {
 		if !sendedToService {
-			if newAction.Pollmode == "none" {
+			// TODO: mode testmode for testing pourpose Pollmode maybe can be omitted
+			if newAction.Testmode || newAction.Pollmode == models.NopollNode {
 				sendedToService = a.httpRepo.SendAction(newAction, actionUserToken)
 				if !sendedToService {
 					log.Printf("ERROR | SendedtoService Failed to publish action event %v", newAction)

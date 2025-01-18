@@ -2,6 +2,10 @@ package models
 
 import "time"
 
+const (
+	NopollNode = "none"
+)
+
 type RequestGoogleAction struct {
 	ActionID       string `json:"actionid"`
 	RequestID      string `json:"requestid"`

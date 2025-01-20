@@ -28,4 +28,8 @@ func setEnvs(envsMapped map[string]string) {
 	for key, value := range envsMapped {
 		os.Setenv(key, value)
 	}
+  // forced
+  if os.Getenv("GO_ENV") == "dev" || os.Getenv("GO_ENV") == "" {
+    os.Setenv("URI_ACTIONS", "http://localhost:4040")
+  }
 }

@@ -6,7 +6,6 @@ import (
 	"minireipaz/pkg/config"
 	"minireipaz/pkg/domain/models"
 	"net/http"
-	"time"
 )
 
 type ActionsHTTPRepository struct {
@@ -27,7 +26,7 @@ func (a *ActionsHTTPRepository) SendAction(newAction *models.RequestGoogleAction
 	command := models.ActionsCommand{
 		Actions:   newAction,
 		Type:      models.CommandTypeCreate,
-		Timestamp: time.Now().UTC(),
+		// Timestamp: time.Now().UTC(),
 	}
 
 	response := a.PublishCommand(&command, actionUserToken)
@@ -39,7 +38,11 @@ func (a *ActionsHTTPRepository) SendAction(newAction *models.RequestGoogleAction
 }
 
 func (a *ActionsHTTPRepository) PublishCommand(data *models.ActionsCommand, serviceUser *string) *models.ResponseGetGoogleSheetByID {
-	url, err := getActionsURL("/api/actions/google/sheets")
+  uriPath := models.URIListByActionType[data.Actions.Type]
+  if uriPath == "" {
+    return nil
+  }
+	url, err := getActionsURL(uriPath)
 	if err != nil {
 		return nil
 	}

@@ -36,7 +36,7 @@ func (a *ActionsServiceImpl) CreateActionsGoogleSheet(newAction models.RequestGo
 			return false, locked, nil
 		}
 		// dont create lock, just check if exist lock and in case not exist lock return false
-		sendedBroker, sendedToService = a.retriesCreateAction(&newAction, now, actionUserToken)
+		sendedBroker, sendedToService = a.retriesCreateAction(&newAction, now, actionUserToken, sendedBroker, sendedToService)
 		if sendedBroker && sendedToService { // happy path
 			// remove lock in case not passed 30 seconds
 			a.removeLockActionID(&newAction.ActionID)
@@ -58,8 +58,8 @@ func (a *ActionsServiceImpl) CreateActionsGoogleSheet(newAction models.RequestGo
 func (a *ActionsServiceImpl) ValidateActionGlobalUUID(field *string) (bool, error) {
 	return a.redisRepo.ValidateActionGlobalUUID(field)
 }
-
-func (a *ActionsServiceImpl) retriesCreateAction(newAction *models.RequestGoogleAction, now string, actionUserToken *string) (sendedBroker bool, sendedToService bool) {
+// sendedBroker passed to Function CDC problema
+func (a *ActionsServiceImpl) retriesCreateAction(newAction *models.RequestGoogleAction, now string, actionUserToken *string, sendedBroker bool, sendedToService bool) (bool, bool) {
 	newAction.CreatedAt = now
 	created, exist, err := a.redisRepo.Create(newAction)
 	if err != nil {
@@ -146,20 +146,33 @@ func (a *ActionsServiceImpl) setActionID(newAction *models.RequestGoogleAction, 
 	return locked, nil
 }
 
-// func (a *ActionsServiceImpl) GetGoogleSheetByID(actionID *string, userID *string) (data *string, err error) {
-//     for i := 1; i < models.MaxAttempts; i++ {
-//     data, err := a.httpRepo.GetActionByID(actionID, userID)
-//     if err != nil || data == nil {
-//       return nil, err
-//     }
-//     if *data != "" {
-//       return data, nil
-//     }
-// 		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
-// 		log.Printf("WARNING | Failed to get action %s for user: %s,  attempt %d:. Retrying in %v", *actionID, *userID, i, waitTime)
-// 		time.Sleep(waitTime)
-// 	}
-// 	log.Print("ERROR | Needs to add to Dead Letter. Cannot send action to broker or service")
-// 	// TODO: dead letter
-// 	return nil, fmt.Errorf("ERROR | deadletter %s %s", *actionID, *userID)
-// }
+// maybe can be merged
+func (a *ActionsServiceImpl) CreateActionsNotion(newAction models.RequestGoogleAction, actionUserToken *string) (sendedBroker bool, sendedToService bool, actionID *string) {
+	// sendedBroker, sendedToService = false, false
+  for i := 1; i < models.MaxAttempts; i++ {
+		now := time.Now().UTC().Format(models.LayoutTimestamp)
+		// looped 10 times with time.sleep in case uuid collisions
+		// locked with same uuid for 30 seconds
+		locked, err := a.setActionID(&newAction, &now)
+		if err != nil || !locked { //  in case that 10 loops cannot get new UUID just return because cannot get new uuid
+			return false, locked, nil
+		}
+		// dont create lock, just check if exist lock and in case not exist lock return false
+		sendedBroker, sendedToService = a.retriesCreateAction(&newAction, now, actionUserToken, sendedBroker, sendedToService)
+		if sendedBroker && sendedToService { // happy path
+			// remove lock in case not passed 30 seconds
+			a.removeLockActionID(&newAction.ActionID)
+			return sendedBroker, sendedToService, &newAction.ActionID
+		}
+		// if !sendedBroker && !sendedToService {
+		// 	return true, true, nil
+		// }
+
+		waitTime := common.RandomDuration(models.MaxRangeSleepDuration, models.MinRangeSleepDuration, i)
+		log.Printf("WARNING | Failed to create action %s for user %s , attempt %d:. Retrying in %v", newAction.ActionID, newAction.Sub, i, waitTime)
+		time.Sleep(waitTime)
+	}
+	log.Print("ERROR | Needs to add to Dead Letter. Cannot send action to broker or service")
+	// TODO: dead letter
+	return false, false, nil
+}

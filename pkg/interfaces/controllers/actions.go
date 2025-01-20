@@ -51,29 +51,37 @@ func (a *ActionsController) CreateActionsGoogleSheet(ctx *gin.Context) {
 		Data:   *actionID,
 	})
 }
+// possible merge createactionsgoogle and createactionsnotion
+func (a *ActionsController) CreateActionsNotion(ctx *gin.Context) {
+  newAction := ctx.MustGet(models.ActionNotionKey).(models.RequestGoogleAction)
+	actionUserToken, err := a.authService.GetActionUserAccessToken()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":  fmt.Sprintf("Failed to authenticate: %v", err),
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+	sendedBroker, sendedToService, actionID := a.actionsService.CreateActionsNotion(newAction, actionUserToken)
+	if !sendedBroker {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":  models.WorkflowNameNotGenerate,
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
 
-// func (a *ActionsController) GetGoogleSheetByID(ctx *gin.Context) {
-// 	actionID := ctx.Param("idaction")
-// 	userID := ctx.Param("iduser")
-// 	data, err := a.actionsService.GetGoogleSheetByID(&actionID, &userID)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{
-// 			"error":  fmt.Sprintf("Failed to authenticate: %v", err),
-// 			"status": http.StatusInternalServerError,
-// 		})
-// 		return
-// 	}
-// 	if data != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{
-// 			"error":  models.WorkflowNameNotGenerate,
-// 			"status": http.StatusInternalServerError,
-// 		})
-// 		return
-// 	}
+	if !sendedBroker && !sendedToService { // happens
+		ctx.JSON(http.StatusAlreadyReported, gin.H{
+			"error":  models.WorkflowNameNotGenerate,
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
 
-// 	ctx.JSON(http.StatusCreated, models.ResponseGetGoogleSheetByID{
-// 		Status: http.StatusOK,
-// 		Error:  "",
-// 		Data:   *data,
-// 	})
-// }
+	ctx.JSON(http.StatusCreated, models.ResponseGetGoogleSheetByID{
+		Status: http.StatusOK,
+		Error:  "",
+		Data:   *actionID,
+	})
+}

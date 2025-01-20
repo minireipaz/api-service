@@ -156,3 +156,16 @@ func ValidateGetGoogleSheet() gin.HandlerFunc {
 		ctx.Next()
 	}
 }
+
+func ValidateNotionFields() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var currentReq models.RequestGoogleAction
+		if err := ctx.ShouldBindBodyWithJSON(&currentReq); err != nil {
+			ctx.JSON(http.StatusBadRequest, NewInvalidRequestError(models.InvalidJSON, http.StatusBadRequest))
+			ctx.Abort()
+			return
+		}
+		ctx.Set(models.ActionNotionKey, currentReq)
+		ctx.Next()
+	}
+}

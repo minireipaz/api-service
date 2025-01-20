@@ -7,6 +7,7 @@ import (
 
 type ActionsService interface {
 	CreateActionsGoogleSheet(newAction models.RequestGoogleAction, actionUserToken *string) (sendedBroker bool, sendedToService bool, actionID *string)
+  CreateActionsNotion(newAction models.RequestGoogleAction, actionUserToken *string) (sendedBroker bool, sendedToService bool, actionID *string)
 }
 
 type ActionsHTTPRepository interface {

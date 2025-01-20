@@ -53,9 +53,16 @@ func Register(app *gin.Engine, dependencies *dimodel.Dependencies) {
 			credentialsGoogle.POST("/exchange", middlewares.ValidateOnExchangeCredential(), dependencies.CredentialController.ExchangeGoogleCode)
 		}
 
+		credentialsTokens := api.Group("/tokens")
+		{
+			credentialsTokens.POST("/credential", middlewares.ValidateOnCreateCredential(), dependencies.CredentialController.CreateTokenCredential)
+		}
+
 		actions := api.Group("/actions")
 		{
 			actions.POST("/google/sheets", middlewares.ValidateGetGoogleSheet(), dependencies.ActionsController.CreateActionsGoogleSheet)
+      actions.POST("/notion", middlewares.ValidateNotionFields(), dependencies.ActionsController.CreateActionsNotion)
+
 			// polling from client
 			// maybe needs to move to another service
 			// actions.GET("/google/sheets/:iduser/:idaction", middlewares.ValidateGetGoogleSheet(), dependencies.ActionsController.GetGoogleSheetByID)

@@ -22,10 +22,9 @@ func NewGoogleCredentialRepository(httpCli HTTPClient) *CredentialGoogleHTTPRepo
 	}
 }
 
-func (c *CredentialGoogleHTTPRepository) GenerateAuthURL(credential *models.RequestCreateCredential, credentialCreatedNew *bool) *string {
+func (c *CredentialGoogleHTTPRepository) GenerateAuthURL(credential *models.RequestExchangeCredential, credentialCreatedNew *bool) *string {
 	codeVerifier := oauth2.GenerateVerifier()
 
-	credential.Timestamp = time.Now().UTC().Unix()
 	credential.Data.Scopes = []string{"https://www.googleapis.com/auth/spreadsheets.readonly"}
 	credential.Data.Code = codeVerifier
 	credential.Data.CodeVerifier = codeVerifier
@@ -70,7 +69,7 @@ func (c *CredentialGoogleHTTPRepository) ExchangeGoogleCredential(currentCredent
 	}
 
 	// replay attacks not implemented
-	// if time.Now().UTC().Unix()-stateInfo.Timestamp > 3600 { // 1 hour
+	// if time.Now().UTC().Unix()-stateInfo.CreatedAt > 3600 { // 1 hour
 	// 	return nil, nil, nil, nil, fmt.Errorf("ERROR | state token expired")
 	// }
 

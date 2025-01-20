@@ -63,3 +63,43 @@ func (c *CredentialHTTPRepository) GetAllCredentials(userID *string, limitCount 
 
 	return result.Data, nil
 }
+
+func (c *CredentialHTTPRepository) GetCredentialByID(userID *string, credentialID *string, limitCount uint64) (*[]models.RequestExchangeCredential, error) {
+	u, err := url.Parse(c.databaseHTTPURL + "/credential_data.json")
+	if err != nil {
+		return nil, err
+	}
+
+	q := u.Query()
+	q.Set("token", c.token)
+	q.Set("user_id", *userID)
+	q.Set("credential_id", *credentialID)
+	q.Set("limit_count", fmt.Sprintf("%d", limitCount))
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("ERROR | response: %d, body: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var result *models.InfoCredentials
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("ERROR | cannot decode body: %s %v", string(bodyBytes), err)
+		return nil, fmt.Errorf("ERROR | cannot decode token: %v", err)
+	}
+
+	return result.Data, nil
+}

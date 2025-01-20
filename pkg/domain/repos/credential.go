@@ -6,18 +6,21 @@ import (
 )
 
 type CredentialService interface {
-	CreateCredential(currentCredential *models.RequestCreateCredential) (*models.RequestCreateCredential, error)
+	CreateCredential(credentialFrontend *models.RequestCreateCredential) (*models.RequestExchangeCredential, error)
+	CreateTokenCredential(credentialFrontend *models.RequestCreateCredential) (saved bool, transformedCredentialID *string, err error)
 	ExchangeGoogleCredential(currentCredential *models.RequestExchangeCredential) (token, refresh *string, expire *time.Time, stateInfo *models.RequestExchangeCredential, err error)
 	GetAllCredentials(userID *string) (*models.ResponseGetCredential, bool)
 	TransformWorkflow(currenteCredential *models.RequestExchangeCredential, workflow *models.Workflow) *models.Workflow
+	GetCredentialByID(userID *string, credentialID *string) (response *models.ResponseGetCredential)
 }
 
 type CredentialHTTPRepository interface {
 	GetAllCredentials(userID *string, limitCount uint64) (*[]models.RequestExchangeCredential, error)
+	GetCredentialByID(userID *string, credentialID *string, limitCount uint64) (*[]models.RequestExchangeCredential, error)
 }
 
 type CredentialGoogleHTTPRepository interface {
-	GenerateAuthURL(credential *models.RequestCreateCredential, credentialCreatedNew *bool) *string
+	GenerateAuthURL(credential *models.RequestExchangeCredential, credentialCreatedNew *bool) *string
 	ExchangeGoogleCredential(currentCredential *models.RequestExchangeCredential) (token, refresh *string, expire *time.Time, stateInfo *models.RequestExchangeCredential, err error)
 }
 

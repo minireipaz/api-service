@@ -37,25 +37,26 @@ func NewCredentialService(googleRepo repos.CredentialGoogleHTTPRepository,
 	}
 }
 
-func (c *CredentialServiceImpl) CreateCredential(currentCredential *models.RequestCreateCredential) (*models.RequestCreateCredential, error) {
-	credentialCreatedNew := false
-	// not necessary to generate new ID
-	// datasource credentials from clickhouse is using ReplacingMergeTree
-	// TODO: requestid is not setted to global uuid and not saved to DB
-	if currentCredential.ID == "none" || !strings.HasPrefix(currentCredential.ID, "credential_") {
-		credentialCreatedNew = true
-		currentCredential.ID = c.generateNewIDCredential(currentCredential)
+func (c *CredentialServiceImpl) CreateCredential(credentialFrontend *models.RequestCreateCredential) (*models.RequestExchangeCredential, error) {
+	// obtain data from DB
+	dbCredential := c.GetCredentialByID(&credentialFrontend.Sub, &credentialFrontend.ID)
+	if dbCredential.Status != 200 {
+		return nil, fmt.Errorf("cannot saved")
 	}
-	currentCredential.RequestID = c.generateNewRequestID()
-	switch currentCredential.Type { // TODO: refactor
+
+	transformedCredential := c.mergeDBCredentail(dbCredential, credentialFrontend)
+	if transformedCredential == nil {
+		return nil, fmt.Errorf("cannot saved")
+	}
+	switch transformedCredential.Type { // TODO: refactor
 	case "googlesheets":
-		authURL := c.googleOAuthRepo.GenerateAuthURL(currentCredential, &credentialCreatedNew)
-		currentCredential.Data.RedirectURL = *authURL
+		authURL := c.googleOAuthRepo.GenerateAuthURL(transformedCredential, &transformedCredential.CredentialCreatedNew)
+		credentialFrontend.Data.RedirectURL = *authURL
 	default:
 		return nil, errors.New("ERROR | currentCredential Type not supported")
 	}
 
-	return currentCredential, nil
+	return transformedCredential, nil
 }
 
 //  func (c *CredentialServiceImpl) generateNewIDCredential(currentCredential *models.RequestCreateCredential) string {
@@ -161,6 +162,22 @@ func (c *CredentialServiceImpl) GetAllCredentials(userID *string) (response *mod
 	}, true
 }
 
+func (c *CredentialServiceImpl) GetCredentialByID(userID *string, credentialID *string) (response *models.ResponseGetCredential) {
+	credentials, err := c.credentialHTTP.GetCredentialByID(userID, credentialID, 1) // 1000 credential as max
+	if err != nil {
+		log.Printf("ERROR | getcredentialbyid %v by userid %s credential id %s", err, *userID, *credentialID)
+		return &models.ResponseGetCredential{
+			Status: http.StatusBadRequest,
+			Error:  err.Error(),
+		}
+	}
+
+	return &models.ResponseGetCredential{
+		Status:      http.StatusOK,
+		Credentials: credentials,
+	}
+}
+
 func (c *CredentialServiceImpl) TransformWorkflow(currenteCredential *models.RequestExchangeCredential, workflow *models.Workflow) *models.Workflow {
 	for i := 0; i < len(workflow.Nodes); i++ {
 		if workflow.Nodes[i].ID == currenteCredential.NodeID {
@@ -172,4 +189,136 @@ func (c *CredentialServiceImpl) TransformWorkflow(currenteCredential *models.Req
 		}
 	}
 	return workflow
+}
+
+func (c *CredentialServiceImpl) mergeDBCredentail(dbCredential *models.ResponseGetCredential, credentialFrontend *models.RequestCreateCredential) (transformedCredential *models.RequestExchangeCredential) {
+	if len(*dbCredential.Credentials) == 0 {
+		// new credential
+		if credentialFrontend.ID == "none" || !strings.HasPrefix(credentialFrontend.ID, "credential_") {
+			newCredential := true
+			transformedCredential = c.transformNewCredentialToBackend(credentialFrontend, newCredential)
+		} else {
+			// ban user hackerman
+			log.Printf("CRITICAL | lock user")
+		}
+	}
+
+	if len(*dbCredential.Credentials) == 1 {
+		// update credential ???
+		newCredential := false
+		transformedCredential = c.transformExistedCredentialToBackend(credentialFrontend, dbCredential, newCredential)
+	} else if len(*dbCredential.Credentials) > 1 {
+		return nil
+	}
+
+	return transformedCredential
+}
+
+func (c *CredentialServiceImpl) CreateTokenCredential(credentialFrontend *models.RequestCreateCredential) (saved bool, transformedCredentialID *string, err error) {
+	// obtain data from DB
+	dbCredential := c.GetCredentialByID(&credentialFrontend.Sub, &credentialFrontend.ID)
+	if dbCredential.Status != 200 {
+		return false, nil, fmt.Errorf("cannot saved")
+	}
+
+	transformedCredential := c.mergeDBCredentail(dbCredential, credentialFrontend)
+	if transformedCredential == nil {
+		return false, nil, fmt.Errorf("cannot saved")
+	}
+
+	switch transformedCredential.Type { // TODO: refactor
+	case "notiontoken":
+		saved, err = c.saveTokenCredential(transformedCredential)
+	default:
+		return false, nil, errors.New("ERROR | currentCredential Type not supported")
+	}
+	// ID only necessary when created new one
+	return saved, &transformedCredential.ID, err
+}
+
+// TODO: can be merged two funcitions transformNewCredentialToBackend and transformExistedCredentialToBackend
+func (c *CredentialServiceImpl) transformNewCredentialToBackend(credentialFrontend *models.RequestCreateCredential, createdNew bool) *models.RequestExchangeCredential {
+	now := time.Now().UTC()
+	newID := c.generateNewIDCredential(credentialFrontend)
+	requestID := c.generateNewRequestID()
+	exchangeCredential := &models.RequestExchangeCredential{
+		ID:                   newID,
+		RequestID:            requestID,
+		CredentialCreatedNew: createdNew,
+		RevokedAt:            &models.CustomTime{Time: models.TimeDefault},
+		LastUsedAt:           &models.CustomTime{Time: models.TimeDefault},
+		ExpiresAt:            &models.CustomTime{Time: now.AddDate(1, 0, 0)}, // TODO: 1 year - better control for lifetime,
+		UpdatedAt:            &models.CustomTime{Time: now},
+		CreatedAt:            &models.CustomTime{Time: now},
+		NodeID:               credentialFrontend.NodeID,
+		Sub:                  credentialFrontend.Sub,
+		WorkflowID:           credentialFrontend.WorkflowID,
+		Type:                 credentialFrontend.Type,
+		Name:                 credentialFrontend.Name,
+		Data:                 credentialFrontend.Data,
+		Version:              1,
+		IsActive:             true,
+	}
+	return exchangeCredential
+}
+
+func (c *CredentialServiceImpl) transformExistedCredentialToBackend(credential *models.RequestCreateCredential, dbCredential *models.ResponseGetCredential, newCredential bool) *models.RequestExchangeCredential {
+	now := time.Now().UTC()
+	// already checked for len
+	dbCredentialCurrent := *dbCredential.Credentials
+	// TODO: better
+	revokedat := dbCredentialCurrent[0].RevokedAt
+	lastusedat := dbCredentialCurrent[0].LastUsedAt
+	expiresat := &models.CustomTime{Time: now.AddDate(1, 0, 0)} // TODO: 1 year - better control for lifetime
+	updatedat := &models.CustomTime{Time: now}
+	createdat := dbCredentialCurrent[0].CreatedAt
+	newRequestID := c.generateNewRequestID()
+
+	exchangeCredential := &models.RequestExchangeCredential{
+		RequestID:            newRequestID,
+		CredentialCreatedNew: newCredential,
+		RevokedAt:            revokedat,
+		LastUsedAt:           lastusedat,
+		ExpiresAt:            expiresat,
+		UpdatedAt:            updatedat,
+		CreatedAt:            createdat,
+		NodeID:               credential.NodeID,
+		Sub:                  dbCredentialCurrent[0].Sub,
+		WorkflowID:           credential.WorkflowID,
+		ID:                   dbCredentialCurrent[0].ID,
+		Type:                 credential.Type,
+		Name:                 credential.Name,
+		Data:                 credential.Data,
+		Version:              1,
+		IsActive:             true,
+	}
+	return exchangeCredential
+}
+
+func (c *CredentialServiceImpl) saveTokenCredential(transformedCredential *models.RequestExchangeCredential) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), models.MaxTimeoutContext)
+	defer cancel() // checkout
+	// TODO: maybe insert in retry template check if it's inserted locked
+	locked, err := c.insertLocker(transformedCredential)
+	if err != nil {
+		log.Printf("ERROR | cannot insert lock in savetokencredential %v", err)
+		return false, fmt.Errorf("error cannot lock key %v", transformedCredential)
+	}
+
+	if !locked { // not error perse
+		return false, fmt.Errorf("wait 5 seconds")
+	}
+
+	sended := false
+	err = c.retryTemplateWithError(ctx, models.MaxAttempts, func() error {
+		var lastError error
+		sended = c.saveCredentialExchange(&transformedCredential.Data.Token, &transformedCredential.Data.TokenRefresh, &transformedCredential.ExpiresAt.Time, transformedCredential)
+		if !sended {
+			log.Printf("ERROR | Cannot save Credential NOT added to dead letter %v", transformedCredential)
+			lastError = fmt.Errorf("ERROR | Cannot save Credential NOT added to dead letter %v", transformedCredential)
+		}
+		return lastError
+	})
+
+	return sended, err
 }

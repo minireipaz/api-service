@@ -103,3 +103,20 @@ func (c *CredentialController) GetAllCredentials(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, credentials)
 }
+
+func (c *CredentialController) CreateTokenCredential(ctx *gin.Context) {
+	credFrontend := ctx.MustGet(models.CredentialCreateContextKey).(models.RequestCreateCredential)
+	savedCredential, transformedCredentialID, err := c.credentialService.CreateTokenCredential(&credFrontend)
+	if err != nil || !savedCredential {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":  models.CredNameNotGenerate,
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"error":  "",
+		"status": http.StatusOK,
+		"id":     *transformedCredentialID,
+	})
+}

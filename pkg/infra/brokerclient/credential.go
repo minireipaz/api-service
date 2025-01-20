@@ -29,12 +29,15 @@ func (c *CredentialKafkaRepository) CreateCredential(token, refresh *string, exp
 	if payload == nil {
 		return false
 	}
+	typeCommand := CommandTypeCreate
+	if !stateInfo.CredentialCreatedNew {
+		typeCommand = CommandTypeUpdate
+	}
 	command := CredentialCommand{
 		Credential: payload,
-		Type:       CommandTypeCreate,
+		Type:       typeCommand, // TODO: mmmm
 		Timestamp:  time.Now().UTC(),
 	}
-	// key := fmt.Sprintf("credential_%s_%s_%s_%s", stateInfo.Sub, stateInfo.WorkflowID, stateInfo.NodeID, stateInfo.Type)
 	sended = c.PublishCommand(command, stateInfo.ID)
 	return sended
 }
@@ -42,30 +45,29 @@ func (c *CredentialKafkaRepository) CreateCredential(token, refresh *string, exp
 // use sync.pool in serverless not necessary
 // TODO: marked as optimiced if it's necessary
 func (c *CredentialKafkaRepository) credentialToPayload(stateInfo *models.RequestExchangeCredential, token, refresh *string, expire *time.Time) *models.CredentialPayload {
-	now := models.CustomTime{
-		Time: time.Now().UTC(),
-	}
+	// now := models.CustomTime{
+	// 	Time: time.Now().UTC(),
+	// }
 	customExpire := models.CustomTime{
 		Time: *expire,
 	}
 
-	// idCurrent := fmt.Sprintf("credential_%s_%s_%s_%s", stateInfo.Sub, stateInfo.WorkflowID, stateInfo.NodeID, stateInfo.Type)
 	stateInfo.Data.Token = *token
 	stateInfo.Data.TokenRefresh = *refresh
-	stateInfo.ExpiresAt = &customExpire
-	stateInfo.CreatedAt = &now
-	stateInfo.UpdatedAt = &now
-	stateInfo.LastUsedAt = &now
-	stateInfo.RevokedAt = &models.CustomTime{Time: models.TimeDefault}
-	stateInfo.Version = 1
-	stateInfo.IsActive = true
+
+	stateInfo.ExpiresAt = &customExpire // needed values?
+	// stateInfo.CreatedAt = &now
+	// stateInfo.UpdatedAt = &now
+	// stateInfo.LastUsedAt = &now
+	// stateInfo.RevokedAt = &models.CustomTime{Time: models.TimeDefault}
+	// stateInfo.Version = 1
+	// stateInfo.IsActive = true
 
 	dataCredential, err := json.Marshal(stateInfo.Data)
 	if err != nil {
 		log.Printf("ERROR | Cannot convert to json %v", stateInfo.Data)
 		return nil
 	}
-	// stateInfo.ID = idCurrent
 
 	payload := &models.CredentialPayload{
 		RequestExchangeCredential: *stateInfo,

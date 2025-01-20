@@ -6,6 +6,13 @@ const (
 	NopollNode = "none"
 )
 
+var URIListByActionType = map[string]string{
+	"googlesheets": "/api/actions/google/sheets",
+  "notiontoken": "/api/actions/notion",
+  "notionoauth": "/api/actions/notion",
+  "": "",
+}
+
 type RequestGoogleAction struct {
 	ActionID       string `json:"actionid"`
 	RequestID      string `json:"requestid"`
@@ -18,7 +25,7 @@ type RequestGoogleAction struct {
 	Data           string `json:"data"`
 	CredentialID   string `json:"credentialid"`
 	Sub            string `json:"sub"`
-	Type           string `json:"type"`
+	Type           string `json:"type" binding:"oneof=googlesheets notiontoken notionoauth"`
 	WorkflowID     string `json:"workflowid"`
 	NodeID         string `json:"nodeid"`
 	RedirectURL    string `json:"redirecturl"`

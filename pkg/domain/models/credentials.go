@@ -23,7 +23,7 @@ const (
 
 type RequestExchangeCredential struct {
 	RequestID            string         `json:"requestid,omitempty"`
-	CredentialCreatedNew bool           `json:"credentialnew,omitempty"`
+	CredentialCreatedNew bool           `json:"credentialnew"`
 	RevokedAt            *CustomTime    `json:"revoked_at,omitempty"`
 	LastUsedAt           *CustomTime    `json:"last_used_at,omitempty"`
 	ExpiresAt            *CustomTime    `json:"expires_at,omitempty"`
@@ -37,7 +37,7 @@ type RequestExchangeCredential struct {
 	Name                 string         `json:"name,omitempty"`
 	Data                 DataCredential `json:"data,omitempty"`
 	Version              uint32         `json:"version,omitempty"`
-	IsActive             bool           `json:"is_active,omitempty"`
+	IsActive             bool           `json:"is_active"`
 }
 
 type RequestCreateCredential struct {
@@ -49,8 +49,7 @@ type RequestCreateCredential struct {
 	NodeID               string         `json:"nodeid,omitempty"`
 	RequestID            string         `json:"requestid,omitempty"`
 	Data                 DataCredential `json:"data" binding:"required"`
-	Timestamp            int64          `json:"timestamp,omitempty"`
-	CredentialCreatedNew bool           `json:"credentialnew,omitempty"`
+	CredentialCreatedNew bool           `json:"credentialnew"`
 }
 
 type DataCredential struct {

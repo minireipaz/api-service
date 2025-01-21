@@ -26,7 +26,7 @@ const (
 	CredentialCreateContextKey   = "createcredential"
 	CredentialExchangeContextKey = "exchangecredential"
 	ActionGoogleKey              = "actiongoogle"
-  ActionNotionKey              = "actionnotion"
+	ActionNotionKey              = "actionnotion"
 	CommandTypeCreate            = "create"
 	CommandTypeUpdate            = "update"
 	CommandTypeDelete            = "delete"

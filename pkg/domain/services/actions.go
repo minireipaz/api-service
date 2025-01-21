@@ -58,6 +58,7 @@ func (a *ActionsServiceImpl) CreateActionsGoogleSheet(newAction models.RequestGo
 func (a *ActionsServiceImpl) ValidateActionGlobalUUID(field *string) (bool, error) {
 	return a.redisRepo.ValidateActionGlobalUUID(field)
 }
+
 // sendedBroker passed to Function CDC problema
 func (a *ActionsServiceImpl) retriesCreateAction(newAction *models.RequestGoogleAction, now string, actionUserToken *string, sendedBroker bool, sendedToService bool) (bool, bool) {
 	newAction.CreatedAt = now

@@ -61,7 +61,7 @@ func Register(app *gin.Engine, dependencies *dimodel.Dependencies) {
 		actions := api.Group("/actions")
 		{
 			actions.POST("/google/sheets", middlewares.ValidateGetGoogleSheet(), dependencies.ActionsController.CreateActionsGoogleSheet)
-      actions.POST("/notion", middlewares.ValidateNotionFields(), dependencies.ActionsController.CreateActionsNotion)
+			actions.POST("/notion", middlewares.ValidateNotionFields(), dependencies.ActionsController.CreateActionsNotion)
 
 			// polling from client
 			// maybe needs to move to another service

@@ -51,9 +51,10 @@ func (a *ActionsController) CreateActionsGoogleSheet(ctx *gin.Context) {
 		Data:   *actionID,
 	})
 }
+
 // possible merge createactionsgoogle and createactionsnotion
 func (a *ActionsController) CreateActionsNotion(ctx *gin.Context) {
-  newAction := ctx.MustGet(models.ActionNotionKey).(models.RequestGoogleAction)
+	newAction := ctx.MustGet(models.ActionNotionKey).(models.RequestGoogleAction)
 	actionUserToken, err := a.authService.GetActionUserAccessToken()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{

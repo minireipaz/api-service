@@ -8,9 +8,9 @@ const (
 
 var URIListByActionType = map[string]string{
 	"googlesheets": "/api/actions/google/sheets",
-  "notiontoken": "/api/actions/notion",
-  "notionoauth": "/api/actions/notion",
-  "": "",
+	"notiontoken":  "/api/actions/notion",
+	"notionoauth":  "/api/actions/notion",
+	"":             "",
 }
 
 type RequestGoogleAction struct {

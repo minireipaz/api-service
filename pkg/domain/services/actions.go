@@ -148,8 +148,7 @@ func (a *ActionsServiceImpl) setActionID(newAction *models.RequestGoogleAction, 
 
 // maybe can be merged
 func (a *ActionsServiceImpl) CreateActionsNotion(newAction models.RequestGoogleAction, actionUserToken *string) (sendedBroker bool, sendedToService bool, actionID *string) {
-	// sendedBroker, sendedToService = false, false
-  for i := 1; i < models.MaxAttempts; i++ {
+	for i := 1; i < models.MaxAttempts; i++ {
 		now := time.Now().UTC().Format(models.LayoutTimestamp)
 		// looped 10 times with time.sleep in case uuid collisions
 		// locked with same uuid for 30 seconds

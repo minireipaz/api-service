@@ -29,7 +29,7 @@ func setEnvs(envsMapped map[string]string) {
 		os.Setenv(key, value)
 	}
   // forced
-  if os.Getenv("GO_ENV") == "dev" || os.Getenv("GO_ENV") == "" {
+  if os.Getenv("GO_ENV") == "dev" {
     os.Setenv("URI_ACTIONS", "http://localhost:4040")
   }
 }

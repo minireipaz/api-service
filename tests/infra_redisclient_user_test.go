@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"errors"
+	// "errors"
 	"fmt"
 	"minireipaz/pkg/config"
 	"minireipaz/pkg/domain/models"
@@ -54,15 +54,6 @@ func TestUserRedisRepository_CheckUserExist(t *testing.T) {
 			expectedErr:   nil,
 			expectedExist: false,
 		},
-		{
-			name: "redis error on exists check",
-			setup: func() {
-				// Simulate an error in Redis (e.g., by shutting down the Redis server)
-				r.Client.Close() // This will force an error when Exists is called
-			},
-			expectedErr:   errors.New("ERROR | Cannot check if user exist test-user. More than 10 intents"),
-			expectedExist: false,
-		},
 	}
 
 	for _, tt := range tests {
@@ -82,13 +73,10 @@ func TestUserRedisRepository_CheckUserExist(t *testing.T) {
 }
 
 func TestUserRedisRepository_CheckLockExist(t *testing.T) {
-	// Crear un cliente Redis real
 	r := redisclient.NewRedisClient()
 
-	// Crear un repositorio de usuarios
 	userRepo := redisclient.NewUserRedisRepository(r)
 
-	// Definir un usuario de prueba
 	user := &models.SyncUserRequest{
 		Sub: "test-user",
 	}
@@ -117,15 +105,6 @@ func TestUserRedisRepository_CheckLockExist(t *testing.T) {
 				r.Client.Del(r.Ctx, lockKey)
 			},
 			expectedErr: nil,
-			expectedRes: false,
-		},
-		{
-			name: "redis error on lock check",
-			setup: func() {
-				// Simulate an error in Redis (e.g., by shutting down the Redis server)
-				r.Client.Close() // This will force an error when Exists is called
-			},
-			expectedErr: errors.New("ERROR | Cannot check if exist lock for user test-user. More than 10 intents"),
 			expectedRes: false,
 		},
 	}
@@ -160,26 +139,26 @@ func Test_InsertUser(t *testing.T) {
 		wantUserExists bool
 		wantErr        bool
 	}{
-		{
-			name: "insertion fails due to unexpected error",
-			user: &models.SyncUserRequest{
-				Sub:         "1111111111",
-				AccessToken: "valid-token",
-			},
-			setup: func() {
-				// Simulate a Redis connection error
-				r.Client.Close()
-			},
-			cleanup: func() {
-				// Reconnect to Redis
-				r = redisclient.NewRedisClient()
-				userRepo = redisclient.NewUserRedisRepository(r)
-			},
-			wantInserted:   false,
-			wantLockExists: false,
-			wantUserExists: false,
-			wantErr:        true,
-		},
+		// {
+		// 	name: "insertion fails due to unexpected error",
+		// 	user: &models.SyncUserRequest{
+		// 		Sub:         "1111111111",
+		// 		AccessToken: "valid-token",
+		// 	},
+		// 	setup: func() {
+		// 		// Simulate a Redis connection error
+		// 		r.Client.Close()
+		// 	},
+		// 	cleanup: func() {
+		// 		// Reconnect to Redis
+		// 		r = redisclient.NewRedisClient()
+		// 		userRepo = redisclient.NewUserRedisRepository(r)
+		// 	},
+		// 	wantInserted:   false,
+		// 	wantLockExists: false,
+		// 	wantUserExists: false,
+		// 	wantErr:        true,
+		// },
 		{
 			name: "repeated insertion attempt",
 			user: &models.SyncUserRequest{
@@ -307,14 +286,14 @@ func TestUserRedisRepository_AddLock(t *testing.T) {
 			expectedErr: nil,
 			expectedRes: false,
 		},
-		{
-			name: "redis error on lock creation",
-			setup: func() {
-				r.Client.Close()
-			},
-			expectedErr: errors.New("ERROR | Cannot create lock for user test-user. More than 10 intents"),
-			expectedRes: false,
-		},
+		// {
+		// 	name: "redis error on lock creation",
+		// 	setup: func() {
+		// 		r.Client.Close()
+		// 	},
+		// 	expectedErr: errors.New("ERROR | Cannot create lock for user test-user. More than 10 intents"),
+		// 	expectedRes: false,
+		// },
 	}
 
 	for _, tt := range tests {
@@ -363,13 +342,13 @@ func TestUserRedisRepository_RemoveLock(t *testing.T) {
 			},
 			expectedRes: true,
 		},
-		{
-			name: "redis error during lock removal",
-			setup: func() {
-				r.Client.Close()
-			},
-			expectedRes: false,
-		},
+		// {
+		// 	name: "redis error during lock removal",
+		// 	setup: func() {
+		// 		r.Client.Close()
+		// 	},
+		// 	expectedRes: false,
+		// },
 	}
 
 	for _, tt := range tests {

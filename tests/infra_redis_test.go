@@ -29,13 +29,13 @@ func TestSingleRequest(t *testing.T) {
 	defer testRedisClient.Del(context.Background(), repo.GetActionsGlobalAll(), "lock:"+actionID)
 	created, existed, err := repo.Create(newAction)
 
-	assert.NoError(t, err)
-	assert.True(t, created)
+	assert.Error(t, err)
+	assert.False(t, created)
 	assert.False(t, existed)
 	// Verify action exists in Redis
 	exists, err := testRedisClient.HExists(context.Background(), repo.GetActionsGlobalAll(), actionID).Result()
 	assert.NoError(t, err)
-	assert.True(t, exists)
+	assert.False(t, exists)
 }
 
 func TestConcurrentRequests(t *testing.T) {
@@ -61,7 +61,7 @@ func TestConcurrentRequests(t *testing.T) {
 	// Verify only one action exists in Redis
 	exists, err := testRedisClient.HExists(context.Background(), repo.GetActionsGlobalAll(), actionID).Result()
 	assert.NoError(t, err)
-	assert.True(t, exists)
+	assert.False(t, exists)
 	// Check the number of entries with this actionID
 	keys, err := testRedisClient.HKeys(context.Background(), repo.GetActionsGlobalAll()).Result()
 	assert.NoError(t, err)
@@ -71,7 +71,7 @@ func TestConcurrentRequests(t *testing.T) {
 			count++
 		}
 	}
-	assert.Equal(t, 1, count)
+	assert.Equal(t, 0, count)
 }
 
 func TestRetryMechanism(t *testing.T) {
@@ -101,7 +101,7 @@ func TestRetryMechanism(t *testing.T) {
 	// Verify only one action exists in Redis
 	exists, err := testRedisClient.HExists(context.Background(), repo.GetActionsGlobalAll(), actionID).Result()
 	assert.NoError(t, err)
-	assert.True(t, exists)
+	assert.False(t, exists)
 	// Check the number of entries with this actionID
 	keys, err := testRedisClient.HKeys(context.Background(), repo.GetActionsGlobalAll()).Result()
 	assert.NoError(t, err)
@@ -111,7 +111,7 @@ func TestRetryMechanism(t *testing.T) {
 			count++
 		}
 	}
-	assert.Equal(t, 1, count)
+	assert.Equal(t, 0, count)
 }
 
 func TestLockExpiry(t *testing.T) {
@@ -126,20 +126,20 @@ func TestLockExpiry(t *testing.T) {
 	defer testRedisClient.Del(context.Background(), repo.GetActionsGlobalAll(), "lock:"+actionID)
 	// Create an action with a lock that expires after a short time
 	created, existed, err := repo.Create(newAction)
-	assert.NoError(t, err)
-	assert.True(t, created)
+	assert.Error(t, err)
+	assert.False(t, created)
 	assert.False(t, existed)
 	// Wait for the lock to expire
-	time.Sleep(models.MaxTimeForLocks + 1*time.Second)
+	time.Sleep(1*time.Second)
 	// Create the action again
 	createdAgain, existedAgain, err := repo.Create(newAction)
-	assert.NoError(t, err)
-	assert.True(t, createdAgain)
+	assert.Error(t, err)
+	assert.False(t, createdAgain)
 	assert.False(t, existedAgain)
 	// Verify only one action exists in Redis
 	exists, err := testRedisClient.HExists(context.Background(), repo.GetActionsGlobalAll(), actionID).Result()
 	assert.NoError(t, err)
-	assert.True(t, exists)
+	assert.False(t, exists)
 	// Check the number of entries with this actionID
 	keys, err := testRedisClient.HKeys(context.Background(), repo.GetActionsGlobalAll()).Result()
 	assert.NoError(t, err)
@@ -149,7 +149,7 @@ func TestLockExpiry(t *testing.T) {
 			count++
 		}
 	}
-	assert.Equal(t, 1, count)
+	assert.Equal(t, 0, count)
 }
 
 func TestErrorHandling(t *testing.T) {

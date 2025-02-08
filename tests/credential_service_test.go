@@ -1,145 +1,107 @@
 package tests
 
 import (
+	"errors"
+	"fmt"
+	"minireipaz/mocks"
 	"minireipaz/pkg/domain/models"
+	"minireipaz/pkg/interfaces/controllers"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-type MockCredentialRepo struct {
-	mock.Mock
-}
-
-type MockGoogleOAuthRepo struct {
-	mock.Mock
-}
-
-func (m *MockGoogleOAuthRepo) GenerateAuthURL(credential *models.RequestExchangeCredential, isNew *bool) *string {
-	args := m.Called(credential, isNew)
-	if str, ok := args.Get(0).(*string); ok {
-		return str
-	}
-	return nil
-}
-
-func (m *MockCredentialRepo) GetCredentialByID(sub *string, id *string) *models.ResponseGetCredential {
-	args := m.Called(sub, id)
-	if response, ok := args.Get(0).(*models.ResponseGetCredential); ok {
-		return response
-	}
-	return nil
-}
-
-func TestCreateCredential(t *testing.T) {
-	mockCredRepo := new(MockCredentialRepo)
-	mockGoogleOAuthRepo := new(MockGoogleOAuthRepo)
+func TestCredentialController_CreateCredential(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 
 	tests := []struct {
-		name           string
-		input          *models.RequestCreateCredential
-		mockSetup      func()
-		expectedError  bool
-		expectedOutput *models.RequestExchangeCredential
+		name               string
+		setupMocks         func(*mocks.CredentialService)
+		setupContext       func(*gin.Context)
+		expectedStatusCode int
+		expectedResponse   string
 	}{
 		{
-			name: "Successfully create Google Sheets credential",
-			input: &models.RequestCreateCredential{
-				Sub:  "test-sub",
-				ID:   "test-id",
-				Type: "googlesheets",
+			name: "Success - Credential Created",
+			setupMocks: func(mockCredService *mocks.CredentialService) {
+				mockCredService.On(
+					"CreateCredential",
+					mock.MatchedBy(func(cred *models.RequestCreateCredential) bool {
+						return cred.Sub == "test-sub" && cred.ID == "test-id" && cred.Type == "googlesheets"
+					}),
+				).Return(&models.RequestExchangeCredential{
+					Data: models.DataCredential{
+						RedirectURL: "https://oauth.google.com/auth",
+					},
+				}, nil)
 			},
-			mockSetup: func() {
-				mockCredRepo.On("GetCredentialByID", mock.AnythingOfType("*string"), mock.AnythingOfType("*string")).
-					Return(&models.ResponseGetCredential{
-						Status: 200,
-						Credentials: &[]models.RequestExchangeCredential{
-							{
-								Type: "googlesheets",
-							},
-						},
-					})
-
-				redirectURL := "https://oauth.google.com/auth"
-				mockGoogleOAuthRepo.On("GenerateAuthURL", mock.AnythingOfType("*models.RequestExchangeCredential"), mock.AnythingOfType("*bool")).
-					Return(&redirectURL)
+			setupContext: func(ctx *gin.Context) {
+				ctx.Set(models.CredentialCreateContextKey, models.RequestCreateCredential{
+					Sub:  "test-sub",
+					ID:   "test-id",
+					Type: "googlesheets",
+				})
 			},
-			expectedError: false,
-			expectedOutput: &models.RequestExchangeCredential{
-				Type: "googlesheets",
-				Data: models.DataCredential{
-					RedirectURL: "https://oauth.google.com/auth",
-				},
-			},
+			expectedStatusCode: http.StatusOK,
+			expectedResponse:   `{"auth_url":"https://oauth.google.com/auth","error":"","status":200}`,
 		},
 		{
-			name: "Fail when credential not found in DB",
-			input: &models.RequestCreateCredential{
-				Sub: "test-sub",
-				ID:  "non-existent",
+			name: "Error - Invalid Credential Type",
+			setupMocks: func(mockCredService *mocks.CredentialService) {
+				mockCredService.On(
+					"CreateCredential",
+					mock.AnythingOfType("*models.RequestCreateCredential"),
+				).Return(nil, errors.New("invalid credential type"))
 			},
-			mockSetup: func() {
-				mockCredRepo.On("GetCredentialByID", mock.AnythingOfType("*string"), mock.AnythingOfType("*string")).
-					Return(&models.ResponseGetCredential{
-						Status: 404,
-					})
+			setupContext: func(ctx *gin.Context) {
+				ctx.Set(models.CredentialCreateContextKey, models.RequestCreateCredential{
+					Sub:  "test-sub",
+					ID:   "test-id",
+					Type: "unsupported",
+				})
 			},
-			expectedError:  true,
-			expectedOutput: nil,
+			expectedStatusCode: http.StatusInternalServerError,
+			expectedResponse:   fmt.Sprintf(`{"error": "%s","status": 500}`, models.CredNameNotGenerate),
 		},
 		{
-			name: "Fail with unsupported credential type",
-			input: &models.RequestCreateCredential{
-				Sub:  "test-sub",
-				ID:   "test-id",
-				Type: "unsupported",
+			name: "Error - Service Internal Failure",
+			setupMocks: func(mockCredService *mocks.CredentialService) {
+				mockCredService.On(
+					"CreateCredential",
+					mock.AnythingOfType("*models.RequestCreateCredential"),
+				).Return(nil, errors.New("internal service failure"))
 			},
-			mockSetup: func() {
-				mockCredRepo.On("GetCredentialByID", mock.AnythingOfType("*string"), mock.AnythingOfType("*string")).
-					Return(&models.ResponseGetCredential{
-						Status: 200,
-						Credentials: &[]models.RequestExchangeCredential{
-							{
-								Type: "unsupported",
-							},
-						},
-					})
+			setupContext: func(ctx *gin.Context) {
+				ctx.Set(models.CredentialCreateContextKey, models.RequestCreateCredential{
+					Sub:  "test-sub",
+					ID:   "test-id",
+					Type: "googlesheets",
+				})
 			},
-			expectedError:  true,
-			expectedOutput: nil,
+			expectedStatusCode: http.StatusInternalServerError,
+			expectedResponse:   fmt.Sprintf(`{"error": "%s","status": 500}`, models.CredNameNotGenerate),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Setup mocks
-			tt.mockSetup()
+			mockCredService := mocks.NewCredentialService(t)
+			tt.setupMocks(mockCredService)
+			controller := controllers.NewCredentialController(mockCredService, nil, nil)
+			w := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(w)
+			tt.setupContext(ctx)
 
-			// Create service with mocks
-			service := &CredentialServiceImpl{
-				credentialRepo:  mockCredRepo,
-				googleOAuthRepo: mockGoogleOAuthRepo,
-			}
-			NewCredentialService
+			controller.CreateCredential(ctx)
 
-			// Execute test
-			result, err := service.CreateCredential(tt.input)
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			assert.JSONEq(t, tt.expectedResponse, w.Body.String())
 
-			// Verify results
-			if tt.expectedError {
-				assert.Error(t, err)
-				assert.Nil(t, result)
-			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, result)
-				assert.Equal(t, tt.expectedOutput.Type, result.Type)
-				assert.Equal(t, tt.expectedOutput.Data.RedirectURL, result.Data.RedirectURL)
-			}
+			mockCredService.AssertExpectations(t)
 		})
 	}
-
-	// Verify that all expected mock calls were made
-	mockCredRepo.AssertExpectations(t)
-	mockGoogleOAuthRepo.AssertExpectations(t)
 }

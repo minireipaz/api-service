@@ -25,7 +25,7 @@ func (c *CredentialController) CreateCredential(ctx *gin.Context) {
 	currentCredential, err := c.credentialService.CreateCredential(&credFrontend)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error":  models.CredNameNotGenerate,
+			"error": models.CredNameNotGenerate,
 			"status": http.StatusInternalServerError,
 		})
 		return

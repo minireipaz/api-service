@@ -22,9 +22,9 @@ func (a *ActionsController) CreateActionsGoogleSheet(ctx *gin.Context) {
 	newAction := ctx.MustGet(models.ActionGoogleKey).(models.RequestGoogleAction)
 	actionUserToken, err := a.authService.GetActionUserAccessToken()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":  fmt.Sprintf("Failed to authenticate: %v", err),
-			"status": http.StatusInternalServerError,
+			"status": http.StatusBadRequest,
 		})
 		return
 	}
@@ -57,9 +57,9 @@ func (a *ActionsController) CreateActionsNotion(ctx *gin.Context) {
 	newAction := ctx.MustGet(models.ActionNotionKey).(models.RequestGoogleAction)
 	actionUserToken, err := a.authService.GetActionUserAccessToken()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":  fmt.Sprintf("Failed to authenticate: %v", err),
-			"status": http.StatusInternalServerError,
+			"status": http.StatusBadRequest,
 		})
 		return
 	}

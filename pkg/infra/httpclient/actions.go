@@ -5,8 +5,11 @@ import (
 	"log"
 	"minireipaz/pkg/config"
 	"minireipaz/pkg/domain/models"
+	"minireipaz/pkg/domain/repos"
 	"net/http"
 )
+
+var _ repos.ActionsHTTPRepository = (*ActionsHTTPRepository)(nil)
 
 type ActionsHTTPRepository struct {
 	databaseHTTPURL string

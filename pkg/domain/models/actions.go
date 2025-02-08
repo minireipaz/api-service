@@ -4,6 +4,9 @@ import "time"
 
 const (
 	NopollNode = "none"
+  GoogleSheets = "googlesheets"
+  NotionToken = "notiontoken"
+  NotionOAuth = "notionoauth"
 )
 
 var URIListByActionType = map[string]string{

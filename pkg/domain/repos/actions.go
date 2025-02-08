@@ -11,7 +11,7 @@ type ActionsService interface {
 }
 
 type ActionsHTTPRepository interface {
-	SendAction(newAction *models.RequestGoogleAction, actionUserToken *string) (sended bool)
+	SendAction(newAction *models.RequestGoogleAction, actionUserToken *string) bool
 	PublishCommand(data *models.ActionsCommand, serviceUser *string) *models.ResponseGetGoogleSheetByID
 }
 

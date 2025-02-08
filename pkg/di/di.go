@@ -64,7 +64,9 @@ func InitDependencies() *dimodel.Dependencies {
 	actionsBrokerClient := brokerclient.NewBrokerClient(kafkaConfig)
 	repoActionsRedis := redisclient.NewActionsRepository(actionsRedisClient)
 	repoActionsBroker := brokerclient.NewActionsKafkaRepository(actionsBrokerClient)
-	actionsRepo := httpclient.NewActionsClientHTTP(actionsHTTPClient, clickhouseConfig)
+	// actionsRepo := httpclient.NewActionsClientHTTP(actionsHTTPClient, clickhouseConfig)
+  // var actionsRepo repos.ActionsHTTPRepository
+  actionsRepo := httpclient.NewActionsClientHTTP(actionsHTTPClient, clickhouseConfig)
 	actionsService := services.NewActionsService(repoActionsRedis, repoActionsBroker, actionsRepo)
 	actionsController := controllers.NewActionsController(actionsService, authService)
 

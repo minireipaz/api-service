@@ -1,4 +1,4 @@
-.PHONY: openapi_http lint fmt test efficient_structs
+.PHONY: openapi_http lint fmt test efficient_structs mockall
 
 include .env
 export
@@ -20,3 +20,7 @@ test:
 efficient_structs:
 	@echo "Fixing structs..."
 	@./scripts/structs_efficient.sh
+
+mockall:
+	@echo "Generating mocks..."
+	@./scripts/mockall.sh
